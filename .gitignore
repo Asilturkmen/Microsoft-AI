@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime data is reproducible through scripts/ingest.py.
+data/*
+!data/.gitkeep
+
+# Local environment files and editor metadata.
+.env
+.DS_Store
+.idea/
+.vscode/

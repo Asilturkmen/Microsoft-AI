@@ -1,0 +1,86 @@
+[
+  {
+    "id": "answerable_normalization",
+    "category": "answerable",
+    "question": "What is database normalization and why is it used?",
+    "should_answer": true,
+    "expected_source": "databases.md",
+    "required_terms_any": ["duplicate", "redundant"]
+  },
+  {
+    "id": "answerable_tcp_udp",
+    "category": "answerable",
+    "question": "How are TCP and UDP different?",
+    "should_answer": true,
+    "expected_source": "networking.md",
+    "required_terms_any": ["reliable", "ordering"]
+  },
+  {
+    "id": "answerable_polymorphism",
+    "category": "answerable",
+    "question": "What does polymorphism allow a program to do?",
+    "should_answer": true,
+    "expected_source": "oop.md",
+    "required_terms_any": ["shared interface", "different object"]
+  },
+  {
+    "id": "answerable_virtual_memory",
+    "category": "answerable",
+    "question": "What is virtual memory?",
+    "should_answer": true,
+    "expected_source": "operating-systems.md",
+    "required_terms_any": ["address space", "physical memory"]
+  },
+  {
+    "id": "answerable_integration_tests",
+    "category": "answerable",
+    "question": "What do integration tests verify?",
+    "should_answer": true,
+    "expected_source": "software-testing.md",
+    "required_terms_any": ["components", "work together"]
+  },
+  {
+    "id": "unanswerable_world_cup",
+    "category": "unanswerable",
+    "question": "Who won the 2026 FIFA World Cup?",
+    "should_answer": false
+  },
+  {
+    "id": "unanswerable_tiramisu",
+    "category": "unanswerable",
+    "question": "What ingredients are needed for tiramisu?",
+    "should_answer": false
+  },
+  {
+    "id": "unanswerable_photosynthesis",
+    "category": "unanswerable",
+    "question": "How does photosynthesis work in plants?",
+    "should_answer": false
+  },
+  {
+    "id": "edge_empty",
+    "category": "edge",
+    "question": "",
+    "expected_error": "ValueError"
+  },
+  {
+    "id": "edge_short",
+    "category": "edge",
+    "question": "TCP?",
+    "should_answer": true,
+    "expected_source": "networking.md",
+    "required_terms_any": ["TCP", "reliable"]
+  },
+  {
+    "id": "edge_general",
+    "category": "edge",
+    "question": "What subjects do these notes cover?",
+    "expected_safe_result": true
+  },
+  {
+    "id": "edge_cross_document",
+    "category": "edge",
+    "question": "How do a Git branch and a database primary key serve different purposes?",
+    "expected_safe_result": true
+  }
+]
