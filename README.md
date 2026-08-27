@@ -1,239 +1,421 @@
-# Microsoft Foundry Local ile Yerel RAG Çalışma Asistanı
+# Microsoft Foundry Local ile Yerel RAG Asistanı
 
-Tamamen cihaz üzerinde çalışan bu uygulama, yerel yazılım mühendisliği notlarında semantic arama yapar ve yalnızca bulunan belge parçalarına dayanarak cevap üretir. Normal soru-cevap çalışması OpenAI cloud, Azure OpenAI veya başka bir uzak LLM servisi gerektirmez.
+> Microsoft AI Innovators Summer Internship 2026 kapsamında geliştirilen, tamamen cihaz üzerinde çalışan bir Retrieval-Augmented Generation (RAG) uygulaması.
 
-## Problem ve amaç
+Bu proje; kullanıcıların yerel belgelerini indeksleyip bu belgeler hakkında soru sormasını sağlar. Dokümanlar cihaz üzerinde parçalanır, yerel embedding modeliyle vektörleştirilir, SQLite içinde saklanır ve kullanıcı sorularına en alakalı içerikler semantic retrieval ile bulunur. Yanıtlar Microsoft Foundry Local üzerinde çalışan yerel dil modeli tarafından yalnızca bulunan bağlama dayanarak üretilir.
 
-Genel amaçlı dil modelleri ders notlarının güncel veya özel içeriğini bilmeyebilir ve bilgileri uydurabilir. Bu proje, kullanıcı sorusuna önce yerel belgelerden kanıt bulur; ardından bu kanıtı bilgisayarda çalışan Foundry Local modeline vererek kısa, grounded bir cevap ve source dosya adları döndürür. Belgelerde yeterli kanıt yoksa deterministik olarak bilgi bulunmadığını söyler.
+Normal soru-cevap akışında OpenAI Cloud, Azure OpenAI veya başka bir uzak LLM/embedding servisine ihtiyaç duyulmaz.
 
-## RAG nedir?
+---
 
-Retrieval-Augmented Generation (RAG), cevap üretmeden önce ilgili bilgiyi bir knowledge base'den getiren akıştır. Bu projede retrieval gerçek embedding vektörleri ve cosine similarity ile yapılır; keyword arama veya sabit cevap kullanılmaz.
+## Özellikler
+
+- Microsoft Foundry Local ile **tamamen yerel LLM inference**
+- Yerel embedding modeli ile **semantic search**
+- Markdown, TXT ve metin katmanı bulunan PDF desteği
+- Başlık/paragraf farkındalıklı document chunking
+- SQLite tabanlı yerel knowledge base
+- Cosine similarity ile en alakalı belge parçalarını bulma
+- Kaynağa dayalı cevap üretimi
+- Kaynak dosya ve parça bilgisini gösterme
+- Belgelerde yeterli bilgi yoksa kontrollü fallback
+- React + TypeScript + Tailwind CSS web arayüzü
+- Drag & drop PDF yükleme
+- Belge görüntüleme ve silme
+- Terminal üzerinden kullanılabilen CLI
+- Unit, integration, E2E ve gerçek Foundry Local testleri
+- API key gerektirmeyen yerel çalışma
+
+---
+
+## Nasıl Çalışır?
 
 ```mermaid
 flowchart TD
-    A[Markdown/TXT belgeleri] --> B[Belge yükleyici]
-    B --> C[Başlık duyarlı parçalama]
-    C --> D[Foundry Local embedding modeli]
-    D --> E[(SQLite: parçalar + embeddingler + metadata)]
-    Q[Kullanıcı sorusu] --> F[Aynı yerel embedding modeli]
-    F --> G[Cosine similarity]
+    A[Yerel Belgeler<br/>MD / TXT / PDF] --> B[Document Loader]
+    B --> C[Chunking]
+    C --> D[Foundry Local<br/>Embedding Modeli]
+    D --> E[(SQLite<br/>Chunk + Embedding + Metadata)]
+
+    Q[Kullanıcı Sorusu] --> F[Aynı Embedding Modeli]
+    F --> G[Cosine Similarity]
     E --> G
-    G --> H[En alakalı 3 parça]
-    H --> I{En yüksek skor >= 0.50?}
-    I -- Hayır --> U[Deterministik bilinmeyen cevabı]
-    I -- Evet --> J[Belgeye dayalı istem]
-    J --> K[Foundry Local sohbet modeli]
-    K --> L[Cevap + kaynak dosya adları]
+
+    G --> H[En Alakalı Chunk'lar]
+    H --> I{Yeterli bağlam var mı?}
+
+    I -- Hayır --> U[Bilginin belgelerde<br/>bulunmadığını söyle]
+    I -- Evet --> J[Retrieved Context + Soru]
+    J --> K[Foundry Local<br/>Chat Modeli]
+    K --> L[Cevap + Kaynaklar]
 ```
 
-## Foundry Local'ın rolü
+RAG akışı üç temel adımdan oluşur:
 
-- Chat: `qwen3.5-2b-text`
-- Embedding: `qwen3-embedding-0.6b`
-- SDK: `foundry-local-sdk==1.2.4`
-- Test edilen platform: Apple M1 arm64, 8 GB RAM, macOS, Python 3.12
+1. **Retrieve:** Kullanıcı sorusuyla en alakalı belge parçaları bulunur.
+2. **Augment:** Bulunan parçalar soruyla birlikte modele bağlam olarak verilir.
+3. **Generate:** Yerel model yalnızca bu bağlamı kullanarak cevap üretir.
 
-Alias kullanımı Foundry Local'ın cihaz için uygun varyantı seçmesine izin verir. Bu cihazda katalog WebGPU varyantlarını seçti. Modeller ilk kullanımda indirilir, sonra yerel cache'den yüklenir ve uygulama kapanırken unload edilir.
+Bu yaklaşım, modelin kendi genel bilgisinden tahmin yürütmesini azaltır ve cevapların kullanıcının gerçek dokümanlarına dayanmasını sağlar.
 
-Microsoft'un güncel kaynakları:
+---
 
-- [Foundry Local başlangıç dokümanı](https://learn.microsoft.com/en-us/windows/ai/foundry-local/get-started)
-- [Resmî Foundry Local deposu ve Python SDK örnekleri](https://github.com/microsoft/Foundry-Local)
-- [Resmî local RAG tutorial](https://learn.microsoft.com/en-us/azure/foundry-local/tutorials/tutorial-build-rag-app)
+## Kullanılan Teknolojiler
 
-> `foundry-local` adlı, `-sdk` içermeyen PyPI paketi Microsoft SDK'sı değildir ve bu projede kullanılmaz.
+### AI / RAG
 
-## Knowledge base ve Türkçe belge ekleme
+- **Microsoft Foundry Local**
+- Chat modeli: `qwen3.5-2b-text`
+- Embedding modeli: `qwen3-embedding-0.6b`
+- `foundry-local-sdk`
+- Cosine similarity tabanlı semantic retrieval
 
-`knowledge/` altında şu anda yedi örnek Markdown dokümanı bulunur:
+### Backend
 
-- relational databases
-- Git basics
-- computer networking
-- object-oriented programming
-- operating systems
-- software testing
-- web development
+- Python 3.11+
+- FastAPI
+- SQLite
+- `pypdf`
 
-Loader `.md` ve `.txt` dosyalarını UTF-8 olarak okur; metin katmanı bulunan `.pdf` dosyalarından `pypdf` ile gerçek metin çıkarır. Kaynak dosya adı her üç biçimde de korunur. Taranmış, yalnızca görüntü içeren PDF'ler OCR gerektirdiği için açıklayıcı hatayla reddedilir.
+### Frontend
 
-Uygulama arayüzü, prompt ve cevap dili Türkçedir. Mevcut örnek knowledge içerikleri kullanıcı tarafından güvenilir Türkçe belgelerle değiştirilecektir; bu dosyalar otomatik çeviriyle değiştirilmemiştir. Yeni belgeler eklendikten sonra mutlaka şu işlemler yeniden yapılmalıdır:
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- Playwright
 
-```bash
-python scripts/ingest.py
-python scripts/evaluate.py
+---
+
+## Proje Mimarisi
+
+```text
+Kullanıcı
+   │
+   ▼
+React Web UI / CLI
+   │
+   ▼
+FastAPI / RAG Pipeline
+   │
+   ├── Document Loader
+   ├── Chunker
+   ├── Local Embedding
+   ├── Semantic Retrieval
+   └── Local LLM
+          │
+          ▼
+       SQLite
 ```
 
-Belge adları veya konuları değişirse `tests/evaluation_cases.json` içindeki beklenen kaynaklar ve sorular da yeni koleksiyona uyarlanmalıdır. Threshold yeni Türkçe knowledge skorlarına göre tekrar doğrulanmalıdır.
+Uygulamanın web ve terminal arayüzleri aynı çekirdek `RAGPipeline` yapısını kullanır. RAG mantığı frontend içine kopyalanmaz.
 
-## Ingestion, embeddings ve SQLite
+---
 
-`scripts/ingest.py` şu rebuild akışını çalıştırır:
+## Knowledge Base
 
-1. Yerel belgeleri yükler.
-2. Heading/paragraf sınırlarını koruyarak chunk'lara böler.
-3. Üretilen parçaları yerel `qwen3-embedding-0.6b` modeliyle toplu olarak embed eder.
-4. Source, chunk index, content ve 1024 boyutlu embedding'i `data/knowledge.db` içine yazar.
-5. Model alias, dimension ve row count metadata'sını doğrular.
+Yerel belgeler `knowledge/` klasöründe tutulur.
 
-Rebuild transaction önceki index'i atomik olarak değiştirir; tekrar çalıştırma duplicate üretmez. Runtime database Git'e eklenmez, her zaman ingestion komutuyla yeniden oluşturulabilir.
+Desteklenen dosya türleri:
 
-## Retrieval ve grounded answer akışı
+- `.md`
+- `.txt`
+- `.pdf`
 
-Kullanıcı sorusu belge ingestion'ında kullanılan aynı embedding modeliyle vektöre çevrilir. SQLite'taki bütün vektörlerle cosine similarity hesaplanır ve varsayılan top 3 chunk score sırasıyla seçilir.
+PDF dosyalarında gerçek bir metin katmanı bulunmalıdır. Yalnızca görüntü içeren taranmış PDF'ler OCR gerektirdiği için mevcut sürümde desteklenmez.
 
-Mevcut İngilizce örnek knowledge üzerinde güvenilir seçilen Türkçe answerable top-1 skorları 0.614069–0.683195, unanswerable skorları 0.158867–0.256008 aralığında kaldı. Bu dağılımda 0.50 threshold iki grup arasında güvenli kalır. Eşik altındaki sorgu LLM'e gönderilmez. Eşik üstünde source etiketli context ve soru, yalnızca belgelere dayanıp Türkçe cevap vermesini zorunlu kılan system prompt ile local chat modeline verilir. Kullanıcının ekleyeceği Türkçe belgelerden sonra bu skorlar tekrar ölçülmelidir.
+Belge yükleme sırasında:
 
-## Kurulum
+```text
+Belge
+  ↓
+Metin çıkarma
+  ↓
+Chunking
+  ↓
+Local embedding
+  ↓
+SQLite
+  ↓
+Semantic retrieval
+```
 
-Önkoşullar:
+akışı uygulanır.
 
-- Apple silicon macOS (bu repo için doğrulanan platform) veya Foundry Local'ın desteklediği bir sistem
-- yaklaşık 8 GB RAM veya daha fazlası
-- ilk dependency/model indirmeleri için internet
-- Python 3.11+ (3.12 önerilir)
+Kaynak dosya adı tüm pipeline boyunca korunur ve cevapla birlikte kullanıcıya gösterilebilir.
 
-macOS kurulumu:
+---
+
+# Kurulum
+
+## Gereksinimler
+
+- Python 3.11 veya üzeri
+- Node.js ve npm
+- Microsoft Foundry Local
+- Yaklaşık 8 GB RAM veya üzeri önerilir
+- İlk dependency ve model indirmeleri için internet bağlantısı
+
+Proje Apple Silicon macOS üzerinde doğrulanmıştır. Foundry Local'ın desteklediği diğer sistemlerde de resmi Microsoft kurulum yönergeleri izlenebilir.
+
+---
+
+## 1. Foundry Local ve Python kurulumu
+
+macOS:
 
 ```bash
 brew install python@3.12 microsoft/foundrylocal/foundrylocal
+```
+
+Kurulumu doğrula:
+
+```bash
 foundry --version
 foundry model info qwen3.5-2b-text
 foundry model info qwen3-embedding-0.6b
+```
+
+---
+
+## 2. Python sanal ortamını oluştur
+
+Repo kökünde:
+
+```bash
 /opt/homebrew/bin/python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Foundry CLI katalog ve diagnostic kontrolü için yararlıdır. Uygulama entegrasyonu resmî Python SDK'sını kullanır.
+Python 3.12 farklı bir konumdaysa sisteminizdeki uygun `python3.12` executable'ını kullanabilirsiniz.
 
-## Belgeleri ingest etme
+---
 
-Sanal ortam aktifken:
-
-```bash
-python scripts/ingest.py
-```
-
-Beklenen özet:
-
-```text
-Yüklenen belge: 7
-Üretilen parça: 21
-Embedding oluşturulan parça: 21
-Embedding boyutu: 1024
-SQLite'a kaydedilen satır: 21
-Belge indeksleme başarıyla tamamlandı.
-```
-
-## Uygulamayı çalıştırma
-
-### Production web arayüzü
-
-İlk kurulumda frontend bağımlılıklarını yükleyip production build oluştur:
+## 3. Frontend bağımlılıklarını yükle
 
 ```bash
-source .venv/bin/activate
-python -m pip install -r requirements.txt
 cd frontend
 npm install
 npm run build
 cd ..
 ```
 
-Ardından backend, gerçek RAG API ve build edilmiş React arayüzünü repo kökünden tek komutla başlat:
+---
+
+## 4. Knowledge Base'i indeksle
+
+```bash
+source .venv/bin/activate
+python scripts/ingest.py
+```
+
+Bu işlem:
+
+1. `knowledge/` altındaki belgeleri yükler.
+2. Metni chunk'lara böler.
+3. Her chunk için yerel embedding oluşturur.
+4. Chunk, kaynak ve embedding verilerini SQLite'a kaydeder.
+5. Knowledge index metadata'sını doğrular.
+
+Re-ingestion işlemi kontrolsüz duplicate üretmez; indeks güvenli biçimde yeniden oluşturulur.
+
+---
+
+# Uygulamayı Çalıştırma
+
+## Production Web Arayüzü
+
+Repo kökünde:
 
 ```bash
 npm start
 ```
 
-Tarayıcıdan [http://127.0.0.1:8765](http://127.0.0.1:8765) adresini aç. Aydınlık ve responsive ürün arayüzü gerçek SQLite belge/parça sayılarını gösterir, aynı `RAGPipeline` üzerinden soru sorar ve retrieval sonucundaki gerçek kaynak dosyası ile parça numaralarını listeler. Sol kütüphanedeki bir belgeye tıklandığında Markdown/TXT içeriği veya PDF'den çıkarılmış gerçek metin bir önizleme panelinde açılır.
+Ardından:
 
-Geliştirme sırasında backend ve Vite hot reload sunucusunu birlikte başlatmak için repo kökünde yalnızca:
+```text
+http://127.0.0.1:8765
+```
+
+adresini açın.
+
+Web arayüzünde:
+
+- knowledge base içindeki belgeler görüntülenebilir,
+- kullanıcı soru sorabilir,
+- cevapların kaynakları görülebilir,
+- yeni PDF yüklenebilir,
+- belge içeriği görüntülenebilir,
+- belgeler güvenli biçimde silinebilir.
+
+---
+
+## Development Modu
+
+Backend ve Vite geliştirme sunucusunu birlikte çalıştırmak için:
 
 ```bash
 npm run dev
 ```
 
-Bu komut Python backend'i `http://127.0.0.1:8765`, Vite arayüzünü `http://127.0.0.1:5173` üzerinde birlikte çalıştırır. `Control+C` her ikisini de kapatır. Python sanal ortam yolu başlangıç betiği tarafından otomatik yönetilir.
+Varsayılan geliştirme adresleri:
 
-### PDF yükleme akışı
+```text
+Backend:  http://127.0.0.1:8765
+Frontend: http://127.0.0.1:5173
+```
 
-Web arayüzündeki **Doküman Ekle** alanı drag-and-drop ve klasik dosya seçimini destekler. Akış sahte başarı üretmez:
+`Control + C` ile her iki süreç de kapatılabilir.
 
-1. PDF adı, içerik türü, `%PDF-` başlığı ve 20 MB sınırı doğrulanır.
-2. Dosya çakışmaya karşı atomik biçimde `knowledge/` içine alınır.
-3. `pypdf` bütün sayfalardan metin çıkarır.
-4. Koleksiyon mevcut heading/paragraf-aware chunker ile yeniden parçalanır.
-5. Bütün parçalar gerçek Foundry Local embedding modeliyle embed edilir.
-6. SQLite indeksi transaction içinde yenilenir.
-7. Yüklenen PDF sonraki retrieval ve chat sorgularında gerçek kaynak olarak kullanılabilir.
+---
 
-UI aktarım sırasında gerçek upload yüzdesini; backend işlemi sırasında metin çıkarma, parçalama, embedding ve kayıt aşamalarını gösterir. İşlem başarısızsa yeni PDF kaldırılır ve atomik SQLite rebuild sayesinde önceki indeks korunur. Aynı isimli dosya üzerine yazılmaz.
+## Terminal Arayüzü
 
-### Belge görüntüleme ve silme
-
-Sol paneldeki her belge seçilebilir. Önizleme; gerçek dosya adını, türünü, parça sayısını, karakter sayısını ve çıkarılmış metni gösterir. **Belgeyi Sil** işlemi ikinci bir kullanıcı onayı ister. Onaydan sonra dosya knowledge koleksiyonundan çıkarılır ve kalan belgeler Foundry Local embedding modeliyle yeniden indekslenir; böylece silinen içerik sonraki sorularda retrieval sonucu olamaz. Yeniden indeksleme hata verirse dosya geri konur. Son belge silinirse SQLite indeksi güvenli biçimde boşaltılır.
-
-### Web API
-
-| Endpoint | İşlev |
-|---|---|
-| `GET /api/health` | Yerel indeks ve gerçek model yaşam döngüsü durumu |
-| `GET /api/documents` | SQLite kaynaklı belge ve parça sayıları |
-| `GET /api/documents/{filename}` | Belgenin çıkarılmış gerçek metnini ve metadata'sını döndürür |
-| `DELETE /api/documents/{filename}` | Onaylanmış belgeyi siler ve kalan koleksiyonu yeniden indeksler |
-| `POST /api/chat` | Ortak çekirdek RAG pipeline üzerinden cevap ve kaynaklar |
-| `POST /api/documents` | PDF yükleme işlemini başlatır |
-| `GET /api/documents/jobs/{id}` | Gerçek PDF ingestion aşamasını döndürür |
-
-### Terminal arayüzü
+CLI sürümünü çalıştırmak için:
 
 ```bash
+source .venv/bin/activate
 python app.py
 ```
 
-Ardışık Türkçe sorular sorulabilir. `çıkış`, `çık`, `exit`, `quit` veya `q` temiz çıkış yapar. Boş giriş güvenli biçimde reddedilir.
+Ardışık sorular sorulabilir.
 
-Örnek sorular:
+Çıkış komutları:
 
 ```text
-ACID transaction özellikleri nelerdir?
-TCP ile UDP arasındaki farklar nelerdir?
-Bir web API hangi HTTP yöntemlerini kullanır?
-Git dalı ve merge işlemi nedir?
-Unit test ile end-to-end test arasındaki fark nedir?
+çıkış
+çık
+exit
+quit
+q
+```
+
+---
+
+# PDF Yükleme
+
+Web arayüzündeki **Doküman Ekle** alanı hem drag & drop hem de klasik dosya seçimini destekler.
+
+PDF yükleme akışı gerçek ingestion pipeline'ını kullanır:
+
+1. Dosya adı, içerik türü, PDF başlığı ve boyutu doğrulanır.
+2. PDF güvenli biçimde `knowledge/` içine eklenir.
+3. `pypdf` ile metin çıkarılır.
+4. Metin chunk'lara ayrılır.
+5. Chunk'lar Foundry Local embedding modeliyle vektörleştirilir.
+6. SQLite indeksi transaction içinde güncellenir.
+7. Yeni PDF sonraki sorularda gerçek retrieval kaynağı olarak kullanılabilir.
+
+İşlem başarısız olursa önceki indeks korunur ve yarım kalmış veri aktif knowledge base'e dahil edilmez.
+
+---
+
+# Belge Görüntüleme ve Silme
+
+Sol panelden bir belge seçildiğinde uygulama:
+
+- dosya adını,
+- dosya türünü,
+- parça sayısını,
+- karakter sayısını,
+- çıkarılmış metni
+
+gösterebilir.
+
+Belge silme işlemi kullanıcı onayı gerektirir. Silme sonrasında knowledge base yeniden indekslenir ve kaldırılan belge sonraki retrieval sonuçlarında kullanılamaz.
+
+---
+
+# Web API
+
+| Endpoint | Açıklama |
+|---|---|
+| `GET /api/health` | Yerel indeks ve model durumunu döndürür |
+| `GET /api/documents` | Knowledge base içindeki belgeleri listeler |
+| `GET /api/documents/{filename}` | Belge içeriği ve metadata döndürür |
+| `DELETE /api/documents/{filename}` | Belgeyi siler ve indeksi günceller |
+| `POST /api/chat` | RAG pipeline üzerinden cevap üretir |
+| `POST /api/documents` | PDF upload / ingestion işlemini başlatır |
+| `GET /api/documents/jobs/{id}` | Ingestion job durumunu döndürür |
+
+---
+
+# Örnek Kullanım
+
+Cevabı knowledge base içinde bulunan sorular:
+
+```text
+Primary key ile foreign key arasındaki fark nedir?
+
+Polimorfizm nedir?
+
+TCP ile UDP arasındaki temel farklar nelerdir?
+
+Unit test ile integration test arasındaki fark nedir?
+```
+
+Knowledge base dışında bir soru:
+
+```text
 2026 FIFA Dünya Kupası'nı kim kazandı?
 ```
 
-Son soru kasıtlı olarak knowledge base dışındadır ve şu cevabı vermelidir:
+Beklenen davranış:
 
 ```text
 Bu bilgi sağlanan belgelerde bulunmuyor.
 ```
 
-## Test ve evaluation
+Bu fallback davranışı, modelin dokümanlarda olmayan bir bilgiyi kendi genel bilgisinden uydurmasını engellemek için tasarlanmıştır.
 
-Hızlı unit suite (gerçek model testleri default olarak skip edilir):
+---
+
+# Testler
+
+## Unit Testler
 
 ```bash
+source .venv/bin/activate
 python -m unittest discover -s tests -v
 ```
 
-Gerçek Foundry Local integration testleri:
+---
+
+## Gerçek Foundry Local Integration Testleri
 
 ```bash
 RUN_REAL_FOUNDRY_TESTS=1 python -m unittest discover -s tests -p 'test_real_foundry.py' -v
 ```
 
-12 vakalık gerçek evaluation:
+---
+
+## Evaluation
 
 ```bash
 python scripts/evaluate.py
 ```
 
-Tekil smoke kontrolleri:
+Evaluation seti:
+
+- cevaplanabilir sorular,
+- cevaplanamaz sorular,
+- boş / kısa / genel girdiler,
+- farklı dokümanlara ait sorgular
+
+içerir.
+
+Güncel doğrulama sonuçları ve performans ölçümleri için:
+
+[`EVALUATION_REPORT.md`](EVALUATION_REPORT.md)
+
+dosyasına bakın.
+
+Knowledge base önemli ölçüde değiştirildiğinde ingestion ve evaluation yeniden çalıştırılmalıdır.
+
+---
+
+## Tekil Smoke Testleri
 
 ```bash
 python scripts/smoke_chat.py
@@ -241,10 +423,17 @@ python scripts/smoke_embeddings.py
 python scripts/smoke_retrieval.py
 python scripts/smoke_rag.py
 python scripts/smoke_unknown.py
-python scripts/smoke_pdf_upload.py /path/to/metin-katmanli-test.pdf
 ```
 
-Frontend test ve build doğrulaması:
+PDF uçtan uca kontrolü:
+
+```bash
+python scripts/smoke_pdf_upload.py /path/to/test.pdf
+```
+
+---
+
+## Frontend Testleri
 
 ```bash
 cd frontend
@@ -253,58 +442,149 @@ npm run build
 npm run test:e2e
 ```
 
-Son doğrulanan çekirdek sonuçlar `EVALUATION_REPORT.md` içindedir: 2 gerçek entegrasyon testi PASS ve Türkçe 12/12 değerlendirme vakası PASS. Güncel hızlı suite belge görüntüleme/silme testleriyle birlikte 38 testten 36 PASS + 2 opt-in SKIP; frontend component suite 5/5 PASS'tir. Soğuk model yükleme 14.245 sn; sıcak sorgu medyanı 4.250 sn olarak ölçüldü. Bu otomatik sonuçlar Türkçe çalışma akışını doğrular; mevcut belgeler İngilizce olduğu için cevap akıcılığına ilişkin nihai onay, kullanıcı Türkçe belgeleri ekledikten sonra verilecektir.
+---
 
-## Local/offline davranış
+# Local / Offline Davranış
 
-İlk SDK, execution-provider ve model indirmeleri internet gerektirebilir. Bunlar cache'lendikten sonra normal ingestion ve soru-cevap akışında:
+İlk kurulum sırasında aşağıdakiler internet gerektirebilir:
 
-- API key gerekmez;
-- `OPENAI_API_KEY` veya `AZURE_OPENAI_API_KEY` okunmaz;
-- OpenAI/Azure endpoint yapılandırılmaz;
-- chat ve embedding istekleri Foundry Local SDK üzerinden native local Core'a gider;
-- belgeler ve SQLite cihazda kalır.
+- Python dependency indirmeleri
+- Foundry Local kurulumu
+- execution provider indirmeleri
+- model indirmeleri
 
-SDK'nın transitive dependency olarak Python `openai` paketini kurması cloud kullanımı anlamına gelmez. Proje bu paketi doğrudan import etmez; Microsoft SDK onu yalnızca OpenAI-uyumlu request/response tipleri için kullanır ve inference'ı `CoreInterop` ile yerel native runtime'a gönderir.
+Gerekli bileşenler cihazda cache'lendikten sonra normal ingestion ve soru-cevap akışında:
 
-## Proje yapısı
+- OpenAI API key gerekmez,
+- Azure OpenAI API key gerekmez,
+- uzak LLM endpoint'i kullanılmaz,
+- chat inference cihaz üzerinde çalışır,
+- embedding inference cihaz üzerinde çalışır,
+- belgeler cihazda kalır,
+- SQLite veritabanı cihazda kalır.
+
+Proje `OPENAI_API_KEY` veya `AZURE_OPENAI_API_KEY` gerektirmez.
+
+---
+
+# Proje Yapısı
 
 ```text
-app.py                    terminal arayüzü
-web_app.py                FastAPI + production frontend giriş noktası
-web_api/                  health, belge, chat ve PDF upload API/servis katmanı
-config.py                 model, path, top-k ve threshold ayarları
-rag/                      loader, chunker, Foundry modelleri, SQLite, retrieval, pipeline
-scripts/ingest.py         reproducible knowledge-index rebuild
-scripts/evaluate.py       gerçek evaluation ve timing
-scripts/smoke_pdf_upload.py geçici DB ile gerçek PDF uçtan uca doğrulaması
-frontend/                 React, TypeScript, Tailwind ve Playwright UI
-knowledge/                Markdown/TXT/PDF yerel belgeleri
-tests/                    unit, opt-in integration ve evaluation vakaları
-data/                     runtime SQLite (Git dışında)
+.
+├── app.py
+├── web_app.py
+├── config.py
+│
+├── rag/
+│   ├── document_loader.py
+│   ├── chunker.py
+│   ├── embeddings.py
+│   ├── database.py
+│   ├── retrieval.py
+│   ├── llm.py
+│   └── pipeline.py
+│
+├── web_api/
+│   └── ...
+│
+├── scripts/
+│   ├── ingest.py
+│   ├── evaluate.py
+│   ├── smoke_chat.py
+│   ├── smoke_embeddings.py
+│   ├── smoke_retrieval.py
+│   ├── smoke_rag.py
+│   ├── smoke_unknown.py
+│   └── smoke_pdf_upload.py
+│
+├── frontend/
+│   └── React + TypeScript + Tailwind UI
+│
+├── knowledge/
+│   └── Yerel MD / TXT / PDF belgeleri
+│
+├── tests/
+│   └── Unit / integration / evaluation testleri
+│
+├── data/
+│   └── Runtime SQLite veritabanı
+│
+├── README.md
+├── PROJECT_REPORT.md
+├── EVALUATION_REPORT.md
+├── DEMO_GUIDE.md
+├── REQUIREMENTS_TRACEABILITY.md
+└── FINAL_AUDIT.md
 ```
 
-## Sınırlamalar
+---
 
-- PDF desteği metin katmanı bulunan dosyalar içindir; OCR uygulanmaz.
-- Brute-force cosine search küçük knowledge base için tasarlanmıştır.
-- Threshold, özellikle knowledge belgelerinin dili veya içeriği değişirse yeniden kalibre edilmelidir.
-- Model çıktısı generatif olduğu için küçük ifade farklılıkları olabilir.
-- Cold model yükleme 8 GB cihazda warm sorgulardan daha uzundur.
-- Upload işleri süreç içinde izlenir; sunucu yeniden başlatılırsa geçmiş job durumları korunmaz, ancak tamamlanmış PDF ve SQLite indeksi kalıcıdır.
+# Tasarım Kararları
 
-## Gelecekteki geliştirmeler
+### Neden SQLite?
 
-- Taranmış PDF'ler için opsiyonel yerel OCR ve DOCX loader
+- Ayrı bir veritabanı sunucusu gerektirmez.
+- Tamamen yereldir.
+- Küçük knowledge base'ler için yeterlidir.
+- Tek dosyalı yapı sayesinde taşınması kolaydır.
+
+### Neden brute-force cosine similarity?
+
+Proje küçük ve yerel document collection'ları hedeflediği için bütün embeddingleri bellekte karşılaştırmak yeterlidir. Büyük veri setlerinde özel bir vector database veya local vector index daha uygun olacaktır.
+
+### Neden relevance threshold?
+
+Yalnızca en yakın sonucu modele vermek, alakasız bir belge parçasının yanlış cevap üretmesine neden olabilir. Retrieval skoru yeterli değilse sistem doğrudan kontrollü fallback döndürür.
+
+Threshold değeri sabit bir varsayım olarak kabul edilmemeli; knowledge base değiştiğinde evaluation sonuçlarına göre yeniden doğrulanmalıdır.
+
+---
+
+# Sınırlamalar
+
+- Taranmış ve yalnızca görüntü içeren PDF'lerde OCR bulunmaz.
+- Semantic search mevcut sürümde küçük knowledge base'ler için optimize edilmiştir.
+- Büyük koleksiyonlarda özel local vector index daha verimli olacaktır.
+- Model çıktısı generatif olduğu için ifade biçiminde küçük farklılıklar oluşabilir.
+- İlk model yükleme süresi warm sorgulardan daha uzundur.
+- Upload job geçmişi sunucu yeniden başlatıldığında korunmaz; tamamlanmış belgeler ve SQLite indeksi kalıcıdır.
+
+---
+
+# Gelecekteki Geliştirmeler
+
+- Tamamen yerel OCR desteği
+- DOCX document loader
 - Büyük koleksiyonlar için local vector index
-- Chunk/threshold calibration yardımcı aracı
-- Cevap içinde chunk seviyesinde tıklanabilir citation
-- Uzun koleksiyonlar için kalıcı job kuyruğu ve incremental ingestion
+- Incremental ingestion
+- Chunk ve threshold kalibrasyon araçları
+- Cevap içinde tıklanabilir chunk-level citation
+- Kalıcı background ingestion job queue
 
-## Diğer teslim dosyaları
+---
 
-- `PROJECT_REPORT.md` — sunuma uygun proje özeti ve lessons learned
-- `EVALUATION_REPORT.md` — gerçek test matrisi ve timing
-- `DEMO_GUIDE.md` — canlı demo akışı
-- `REQUIREMENTS_TRACEABILITY.md` — requirement → code/test kanıtı
-- `FINAL_AUDIT.md` — Definition of Done final checklist
+# Proje Dokümantasyonu
+
+Repo içinde ek doğrulama ve sunum dokümanları bulunur:
+
+- [`PROJECT_REPORT.md`](PROJECT_REPORT.md) — proje özeti, mimari kararlar ve lessons learned
+- [`EVALUATION_REPORT.md`](EVALUATION_REPORT.md) — test matrisi ve performans sonuçları
+- [`DEMO_GUIDE.md`](DEMO_GUIDE.md) — final demo / sunum akışı
+- [`REQUIREMENTS_TRACEABILITY.md`](REQUIREMENTS_TRACEABILITY.md) — gereksinim → kod → test kanıtı
+- [`FINAL_AUDIT.md`](FINAL_AUDIT.md) — final Definition of Done kontrolü
+
+---
+
+# Microsoft Kaynakları
+
+- [Microsoft Foundry Local](https://github.com/microsoft/Foundry-Local)
+- [Foundry Local — Get Started](https://learn.microsoft.com/en-us/windows/ai/foundry-local/get-started)
+- [Build a local RAG application](https://learn.microsoft.com/en-us/azure/foundry-local/tutorials/tutorial-build-rag-app)
+
+---
+
+## Kısa Özet
+
+Bu proje, kullanıcının kendi belgelerini cihaz üzerinde indeksleyip bu belgeler hakkında kaynak gösterimli sorular sorabilmesini sağlayan yerel bir RAG sistemidir.
+
+**Belgeler cihazda kalır. Embedding yereldir. LLM yereldir. Cevaplar kaynaklara dayanır.**
