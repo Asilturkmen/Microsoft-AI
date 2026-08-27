@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate and inspect real local Foundry embedding vectors."""
+"""Gerçek yerel Foundry embedding vektörlerini üret ve incele."""
 
 from __future__ import annotations
 
@@ -25,19 +25,19 @@ def cosine(left: list[float], right: list[float]) -> float:
 
 def main() -> int:
     texts = [
-        "Object-oriented programming uses classes and objects.",
-        "Classes are blueprints for creating object instances.",
-        "TCP retransmits lost network data.",
+        "Nesne yönelimli programlama sınıfları ve nesneleri kullanır.",
+        "Sınıflar, nesne örnekleri oluşturmak için kullanılan şablonlardır.",
+        "TCP kaybolan ağ verilerini yeniden iletir.",
     ]
-    print(f"Loading local embedding model: {EMBEDDING_MODEL_ALIAS}", flush=True)
+    print(f"Yerel embedding modeli yükleniyor: {EMBEDDING_MODEL_ALIAS}", flush=True)
     with FoundryEmbeddingModel() as model:
         vectors = model.embed_texts(texts)
-        print(f"Vectors: {len(vectors)}", flush=True)
-        print(f"Dimension: {len(vectors[0])}", flush=True)
-        print(f"Finite: {all(math.isfinite(x) for vector in vectors for x in vector)}", flush=True)
-        print(f"Similar cosine: {cosine(vectors[0], vectors[1]):.6f}", flush=True)
-        print(f"Different cosine: {cosine(vectors[0], vectors[2]):.6f}", flush=True)
-    print("Local embedding model unloaded.", flush=True)
+        print(f"Vektör sayısı: {len(vectors)}", flush=True)
+        print(f"Boyut: {len(vectors[0])}", flush=True)
+        print(f"Tüm değerler sonlu: {all(math.isfinite(x) for vector in vectors for x in vector)}", flush=True)
+        print(f"Benzer cümle kosinüs skoru: {cosine(vectors[0], vectors[1]):.6f}", flush=True)
+        print(f"Farklı cümle kosinüs skoru: {cosine(vectors[0], vectors[2]):.6f}", flush=True)
+    print("Yerel embedding modeli kaldırıldı.", flush=True)
     return 0
 
 

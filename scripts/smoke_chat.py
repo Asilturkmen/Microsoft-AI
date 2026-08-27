@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove that this project can invoke a real local Foundry chat model."""
+"""Projenin gerçek yerel Foundry sohbet modelini çağırabildiğini kanıtla."""
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ from rag.llm import FoundryChatModel  # noqa: E402
 
 
 def main() -> int:
-    prompt = "Say hello in one short sentence."
-    print(f"Loading local model: {CHAT_MODEL_ALIAS}")
+    prompt = "Tek kısa cümleyle Türkçe merhaba de."
+    print(f"Yerel model yükleniyor: {CHAT_MODEL_ALIAS}")
     with FoundryChatModel() as model:
-        print("Local model ready.")
-        print(f"Prompt: {prompt}")
-        print(f"Response: {model.complete(prompt)}")
-    print("Local model unloaded.")
+        print("Yerel model hazır.")
+        print(f"İstem: {prompt}")
+        print(f"Yanıt: {model.complete(prompt)}")
+    print("Yerel model kaldırıldı.")
     return 0
 
 

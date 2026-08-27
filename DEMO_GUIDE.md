@@ -1,4 +1,4 @@
-# Demo Guide — Local RAG Study Assistant
+# Demo Rehberi — Yerel RAG Çalışma Asistanı
 
 ## Demo öncesi tek hazırlık
 
@@ -18,56 +18,56 @@ Ingestion sırasında belgeleri başlık ve paragraf sınırlarına göre 21 par
 
 Kullanıcı soru sorunca aynı local embedding modeli soruyu vektöre dönüştürüyor. Cosine similarity en alakalı üç parçayı seçiyor. En yüksek skor 0.50'nin altındaysa sistem bilgi uydurmadan doğrudan belgelerde cevap olmadığını söylüyor. Yeterli kanıt varsa sadece bulunan context, Foundry Local üzerinde cihazda çalışan chat modeline veriliyor. Cevap ve source dosya adları terminalde gösteriliyor. Normal inference için OpenAI veya Azure API anahtarı gerekmiyor.”
 
-## Live Demo 1 — Database belgesi
+## Canlı Demo 1 — Veritabanı belgesi
 
 Sor:
 
 ```text
-What is database normalization and why is it used?
+ACID transaction özellikleri nelerdir?
 ```
 
 Beklenen davranış:
 
-- Normalization'ın duplicated data ve update anomalies'i azaltmak için tabloları organize ettiğini söyler.
+- ACID özelliklerini Türkçe olarak açıklar.
 - Source: `databases.md`
-- Son gerçek top-3 skorları: 0.7776, 0.6069, 0.5106
+- Mevcut örnek knowledge ile ölçülen top-1 skor: 0.667166
 
-Kısa anlatım: “Soru embedding'i database chunk'larını ilk üç sıraya getirdi ve model sadece bu context'i kullandı.”
+Kısa anlatım: “Türkçe soru embedding'i doğru veritabanı parçasını buldu ve model İngilizce bağlamı belgeye sadık Türkçe bir cevaba dönüştürdü.”
 
-## Live Demo 2 — Networking belgesi
+## Canlı Demo 2 — Ağ belgesi
 
 Sor:
 
 ```text
-How are TCP and UDP different?
+TCP ile UDP arasındaki farklar nelerdir?
 ```
 
 Beklenen davranış:
 
-- TCP'nin connection, ordered/reliable delivery; UDP'nin guarantee olmadan datagram davranışını açıklar.
+- TCP'nin bağlantılı ve güvenilir teslim; UDP'nin garanti vermeyen datagram davranışını Türkçe açıklar.
 - Source: `networking.md`
-- Son gerçek top-3 skorları: 0.7556, 0.5052, 0.4760
+- Mevcut örnek knowledge ile ölçülen top-1 skor: 0.620011
 
 Kısa anlatım: “İkinci soru farklı bir belgeyi getiriyor; retrieval tek bir hard-coded konuya bağlı değil.”
 
-## Live Demo 3 — Belgelerde olmayan bilgi
+## Canlı Demo 3 — Belgelerde olmayan bilgi
 
 Sor:
 
 ```text
-What ingredients are needed for tiramisu?
+Tiramisu yapmak için hangi malzemeler gerekir?
 ```
 
 Beklenen cevap:
 
 ```text
-The information is not available in the provided documents.
+Bu bilgi sağlanan belgelerde bulunmuyor.
 ```
 
 Beklenen davranış:
 
 - Source göstermez.
-- Son gerçek top score: 0.254877; 0.50 threshold'un altında.
+- Mevcut örnek knowledge ile ölçülen top score: 0.204500; 0.50 threshold'un altında.
 - Chat completion'a gitmeden deterministic fallback kullanır.
 
 Kısa anlatım: “Bu, modelin genel yemek bilgisini kullanıp cevap uydurmadığını gösteriyor.”
@@ -89,7 +89,7 @@ Kısa anlatım: “Bu, modelin genel yemek bilgisini kullanıp cevap uydurmadı�
 3. `config.py` içindeki iki model alias'ını, top-k 3 ve threshold 0.50'yi göster.
 4. `rag/retrieval.py` içindeki cosine sıralamasını göster.
 5. `rag/pipeline.py` içindeki threshold ve grounded prompt'u göster.
-6. `app.py` üzerinden üç live demo sorusunu sırayla sor.
+6. `app.py` üzerinden üç canlı demo sorusunu sırayla sor.
 7. `EVALUATION_REPORT.md` içindeki 12/12 PASS ve timing tablosunu göster.
 
 ## Muhtemel değerlendirici soruları
@@ -110,7 +110,7 @@ Bu, resmî Foundry Local SDK'nın transitive dependency'si ve uyumlu request/res
 Pipeline iki modeli CLI başlangıcında bir kez yüklüyor, bütün sorularda aynı client'ları kullanıyor ve çıkışta unload ediyor.
 
 **Threshold neden 0.50?**  
-Gerçek answerable skorları 0.650893–0.783113, unanswerable skorları 0.197778–0.298080 çıktı. 0.50 bu iki kümenin arasındaki konservatif boşlukta.
+Mevcut İngilizce örnek knowledge üzerinde güvenilir seçilen Türkçe answerable sorular 0.614069–0.683195, unanswerable sorular 0.158867–0.256008 aralığında kaldı. 0.50 iki kümenin arasındaki güvenli boşlukta. Türkçe belgeler eklendikten sonra bu ölçüm tekrarlanmalıdır.
 
 **Re-ingestion duplicate üretir mi?**  
 Hayır. SQLite index transaction içinde rebuild edilir. İki gerçek çalıştırmada da row count 21 kaldı ve 21 source/chunk anahtarının tamamı benzersizdi.
@@ -119,10 +119,10 @@ Hayır. SQLite index transaction içinde rebuild edilir. İki gerçek çalışt�
 İlk 0.5B chat modeli strict prompt'a uymadı ve bir testte TCP/UDP'yi ters anlattı. Daha güçlü `qwen3.5-2b-text` modeline geçip prompt ve deterministic generation ayarlarını iyileştirdim.
 
 **Performans nasıl?**  
-Son ölçümde cache'lenmiş modellerin cold load süresi 14.844 sn, warm query medianı 2.213 sn, maksimumu 2.875 sn idi.
+Son Türkçe değerlendirmede önbellekteki modellerin soğuk yükleme süresi 14.245 sn, sıcak sorgu medyanı 4.250 sn, maksimumu 12.964 sn idi. Bu ölçümler mevcut İngilizce örnek belgelerle alınmıştır.
 
 **Mevcut sınırlamalar?**  
-Markdown/TXT desteği, küçük koleksiyon için brute-force retrieval ve domain değişince yeniden threshold calibration gereksinimi.
+Markdown/TXT desteği, küçük koleksiyon için brute-force retrieval ve alan değişince eşik kalibrasyonunun yenilenmesi gerekir. Ayrıca mevcut örnek belgeler İngilizcedir; güvenilir Türkçe belgeler eklendikten sonra cevap akıcılığı ve doğruluğu yeniden denetlenmelidir.
 
 ## Demo kapanış cümlesi
 

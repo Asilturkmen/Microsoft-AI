@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List knowledge documents accepted by the local loader."""
+"""Yerel loader tarafından kabul edilen knowledge belgelerini listele."""
 
 from __future__ import annotations
 
@@ -16,9 +16,9 @@ from rag.document_loader import load_documents  # noqa: E402
 
 def main() -> int:
     documents = load_documents(PROJECT_ROOT / "knowledge")
-    print(f"Loaded {len(documents)} documents.")
+    print(f"{len(documents)} belge yüklendi.")
     for document in documents:
-        empty_note = " (empty)" if not document.content.strip() else ""
+        empty_note = " (boş)" if not document.content.strip() else ""
         print(f"- {document.source}{empty_note}")
     return 0
 

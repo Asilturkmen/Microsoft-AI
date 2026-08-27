@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify deterministic unknown-answer behavior with real retrieval."""
+"""Gerçek retrieval ile deterministik bilinmeyen cevap davranışını doğrula."""
 
 from __future__ import annotations
 
@@ -15,9 +15,9 @@ from rag.pipeline import RAGPipeline, UNKNOWN_ANSWER  # noqa: E402
 
 
 QUESTIONS = [
-    "Who won the 2026 FIFA World Cup?",
-    "What ingredients are needed for tiramisu?",
-    "How does photosynthesis work in plants?",
+    "2026 FIFA Dünya Kupası'nı kim kazandı?",
+    "Tiramisu yapmak için hangi malzemeler gerekir?",
+    "Bitkilerde fotosentez nasıl gerçekleşir?",
 ]
 
 
@@ -26,13 +26,13 @@ def main() -> int:
         for question in QUESTIONS:
             result = pipeline.answer_query(question)
             top_score = result.retrieved_chunks[0].score
-            print(f"Question: {question}")
-            print(f"Answer: {result.answer}")
-            print(f"Top score: {top_score:.6f}")
-            print(f"Fallback: {result.used_fallback}")
+            print(f"Soru: {question}")
+            print(f"Cevap: {result.answer}")
+            print(f"En yüksek skor: {top_score:.6f}")
+            print(f"Kontrollü bilinmeyen cevabı: {result.used_fallback}")
             if result.answer != UNKNOWN_ANSWER or not result.used_fallback:
-                raise RuntimeError(f"Unknown-answer check failed for: {question}")
-    print("All unknown-answer checks passed.")
+                raise RuntimeError(f"Bilinmeyen cevap kontrolü başarısız: {question}")
+    print("Tüm bilinmeyen cevap kontrolleri geçti.")
     return 0
 
 

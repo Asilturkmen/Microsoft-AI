@@ -5,9 +5,10 @@ Son güncelleme: 2026-08-27 (Asia/Famagusta)
 ## Genel durum
 
 - Çalışma modu: AUTOPILOT
-- Aktif faz: Tamamlandı
+- Aktif durum: Türkçe knowledge belgeleri bekleniyor
 - Zorunlu fazlar: 14/14 tamamlandı (Faz 0–13)
-- Final audit: **PASS — READY FOR SUBMISSION**
+- Teknik denetim: **PASS**
+- Nihai Türkçe içerik denetimi: **BEKLEMEDE — kullanıcı belgeleri ekledikten sonra**
 
 ## Faz 0 — Ortam ve Repo Analizi
 
@@ -182,7 +183,7 @@ Durum: **PASS**
 
 - Gerçek skor analizi: yedi answerable top-1 skoru 0.650893–0.783113; beş unanswerable top-1 skoru 0.197778–0.298080.
 - İki küme arasındaki açık boşluğa dayanarak konservatif `0.50` relevance threshold seçildi.
-- Threshold altındaki sorgu LLM completion çağrısına gönderilmiyor ve deterministik `The information is not available in the provided documents.` cevabı dönüyor.
+- Eşik altındaki sorgu LLM tamamlama çağrısına gönderilmiyor ve deterministik `Bu bilgi sağlanan belgelerde bulunmuyor.` cevabı dönüyor.
 - Dünya Kupası (0.197778), tiramisu (0.254877) ve fotosentez (0.298080) gerçek testlerinin üçü de fallback verdi.
 - Prompt grounding'i tek kısa cevap cümlesi ve yalnızca açıkça yazılı context olguları ile sınırlandı.
 - 22/22 unit test PASS.
@@ -203,7 +204,7 @@ Durum: **PASS**
 - Unit: 24 PASS; normal suite içindeki 2 gerçek-model testi beklenen şekilde opt-in SKIP.
 - Gerçek integration: 2/2 PASS; son tekrar 18.717 sn.
 - Gerçek evaluation: 12/12 PASS.
-- Final audit timing: cold load 14.844 sn; warm min/median/max 0.064/2.213/2.875 sn.
+- Son Türkçe değerlendirme süreleri: soğuk yükleme 14.245 sn; sıcak min/medyan/maks 0.074/4.250/12.964 sn.
 - Ayrıntılı kanıt ve bilinen sınırlamalar `EVALUATION_REPORT.md` içinde kaydedildi.
 
 ## Faz 11 — Kod Temizliği ve Final Teknik Audit
@@ -214,7 +215,7 @@ Durum: **PASS**
 - App/config/rag/scripts/tests taramasında remote URL, API key, OpenAI/Azure credential veya remote fallback bulunmadı.
 - `openai` transitive paketi doğrudan proje kodunda import edilmiyor. Kurulu Microsoft SDK kaynak kodunda `ChatClient` ve `EmbeddingClient`, request'leri `CoreInterop.execute_command("chat_completions"/"embeddings")` ile native Foundry Local Core'a gönderiyor; remote HTTP/base URL yok.
 - SQLite `PRAGMA integrity_check` → `ok`; 21 row = 21 unique source/chunk; embedding metadata alias `qwen3-embedding-0.6b`, dimension 1024.
-- Generation `temperature=0`, `random_seed=42`, `max_tokens=256` ile daha tutarlı ve sınırlı hale getirildi.
+- Üretim `temperature=0`, `random_seed=42`, `max_tokens=160` ile daha tutarlı ve sınırlı hale getirildi.
 - Son unit suite: 24 PASS + 2 opt-in SKIP; gerçek integration: 2/2 PASS.
 - Son gerçek E2E: normalization, TCP/UDP ve polymorphism doğru/grounded cevap + doğru source; modeller unload edildi.
 - Master plan ve başlangıç DOCX dosyası geliştirme boyunca korundu; proje tamamlandıktan sonra kullanıcının açık isteğiyle repo kökünden kaldırıldı.
@@ -246,9 +247,9 @@ Durum: **SKIPPED (opsiyonel)**
 
 Zorunlu CLI eksiksiz çalışıyor. Yeni web framework dependency'si, ek startup yüzeyi ve 8 GB cihazda test yükü getirmenin çekirdek teslimi gereksiz risklendireceği değerlendirildi. Master plan Faz 14'ü yalnızca çekirdeği destabilize etmeden eklenebiliyorsa önerdiği için bu teslimde basit ve doğrulanmış CLI korundu.
 
-## Final Requirements Audit
+## Son Gereksinim Denetimi
 
-Durum: **PASS — READY FOR SUBMISSION**
+Durum: **TEKNİK PASS — NİHAİ TÜRKÇE İÇERİK DENETİMİ BEKLEMEDE**
 
 - Definition of Done: 38/38 PASS, 0 FAIL, 0 NOT VERIFIED.
 - Final iki ingestion rebuild: 21/21 row; duplicate yok.
@@ -256,4 +257,15 @@ Durum: **PASS — READY FOR SUBMISSION**
 - Final gerçek evaluation: 12/12 PASS.
 - Model cleanup: pipeline sırasında 2 loaded, kapanıştan sonra 0 loaded.
 - Cloud audit: OpenAI/Azure key ve endpoint yok; SDK chat/embedding native CoreInterop kullanıyor.
-- Final kanıt matrisi `REQUIREMENTS_TRACEABILITY.md`, ayrıntılı checklist `FINAL_AUDIT.md` içinde.
+- Son kanıt matrisi `REQUIREMENTS_TRACEABILITY.md`, ayrıntılı kontrol listesi `FINAL_AUDIT.md` içinde.
+
+## Türkçeleştirme Sonrası Durum
+
+Durum: **UYGULAMA PASS — KNOWLEDGE BEKLENİYOR**
+
+- Terminal arayüzü, cevap/kaynak etiketleri, çıkış komutları, hata mesajları, RAG sistem istemi, yardımcı betikler ve test soruları Türkçeleştirildi.
+- Kontrollü bilinmeyen yanıtı `Bu bilgi sağlanan belgelerde bulunmuyor.` olarak güncellendi.
+- `knowledge/` klasöründeki dosyalara kullanıcının isteği doğrultusunda dokunulmadı; kullanıcı bunları güvenilir Türkçe belgelerle değiştirecek.
+- Türkçeleştirme sonrası birim testleri 24 PASS, gerçek Foundry entegrasyonu 2/2 PASS ve Türkçe değerlendirme matrisi 12/12 PASS oldu.
+- Mevcut İngilizce belgelerle manuel denemede bazı terimlerin doğal olmayan çevrildiği görüldü. Bu nedenle otomatik PASS sonucu nihai Türkçe cevap kalitesi onayı olarak yorumlanmamalıdır.
+- Türkçe belgeler eklendikten sonra `scripts/ingest.py` ve `scripts/evaluate.py` yeniden çalıştırılacak; eşik dağılımı, kaynak eşleşmeleri, teknik doğruluk ve Türkçe akıcılık tekrar denetlenecektir.

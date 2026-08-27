@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run real semantic retrieval questions against the SQLite index."""
+"""SQLite indeksine karşı gerçek Türkçe semantic retrieval soruları çalıştır."""
 
 from __future__ import annotations
 
@@ -18,10 +18,10 @@ from rag.retrieval import SemanticRetriever  # noqa: E402
 
 
 QUESTIONS = [
-    "What does database normalization prevent?",
-    "How does TCP provide reliable delivery?",
-    "What is polymorphism in object-oriented programming?",
-    "What do integration tests verify?",
+    "ACID transaction özellikleri nelerdir?",
+    "TCP ile UDP arasındaki farklar nelerdir?",
+    "Git dalı ve merge işlemi nedir?",
+    "Bir web API hangi HTTP yöntemlerini kullanır?",
 ]
 
 
@@ -31,7 +31,7 @@ def main() -> int:
         retriever = SemanticRetriever(database, model)
         for question in QUESTIONS:
             results = retriever.get_top_chunks(question)
-            print(f"Question: {question}")
+            print(f"Soru: {question}")
             for result in results:
                 print(
                     f"  {result.score:.6f}  {result.source}#{result.chunk_index}"

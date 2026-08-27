@@ -1,4 +1,4 @@
-"""End-to-end local document ingestion orchestration."""
+"""Uçtan uca yerel belge ingestion koordinasyonu."""
 
 from __future__ import annotations
 
@@ -32,10 +32,10 @@ def ingest_documents(
 ) -> IngestionResult:
     documents = load_documents(knowledge_dir)
     if not documents:
-        raise RuntimeError(f"No supported documents found in {knowledge_dir}")
+        raise RuntimeError(f"Desteklenen belge bulunamadı: {knowledge_dir}")
     chunks = chunk_documents(documents)
     if not chunks:
-        raise RuntimeError("Knowledge documents did not produce any non-empty chunks.")
+        raise RuntimeError("Knowledge belgeleri boş olmayan hiçbir parça üretmedi.")
     embeddings = embedding_model.embed_texts([chunk.content for chunk in chunks])
     database.replace_chunks(
         chunks,
@@ -45,7 +45,7 @@ def ingest_documents(
     stored_count = database.count_chunks()
     if stored_count != len(chunks):
         raise RuntimeError(
-            f"SQLite verification failed: expected {len(chunks)} rows, found {stored_count}."
+            f"SQLite doğrulaması başarısız: beklenen {len(chunks)} satır, bulunan {stored_count}."
         )
     return IngestionResult(
         document_count=len(documents),

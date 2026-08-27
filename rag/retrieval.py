@@ -1,4 +1,4 @@
-"""Embedding-based semantic retrieval over the local SQLite index."""
+"""Yerel SQLite indeksi üzerinde embedding tabanlı anlamsal retrieval."""
 
 from __future__ import annotations
 
@@ -26,13 +26,13 @@ class RetrievedChunk:
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
-    """Compute cosine similarity safely, including zero-vector handling."""
+    """Sıfır vektörleri de gözeterek cosine similarity'yi güvenle hesapla."""
     if len(left) != len(right):
         raise ValueError(
-            f"Vector dimension mismatch: left has {len(left)}, right has {len(right)}."
+            f"Vektör boyutları uyuşmuyor: sol {len(left)}, sağ {len(right)}."
         )
     if not left:
-        raise ValueError("Vectors cannot be empty.")
+        raise ValueError("Vektörler boş olamaz.")
     left_norm = math.sqrt(sum(value * value for value in left))
     right_norm = math.sqrt(sum(value * value for value in right))
     if left_norm == 0.0 or right_norm == 0.0:
@@ -51,21 +51,21 @@ class SemanticRetriever:
 
     def get_top_chunks(self, query: str, top_k: int = TOP_K) -> list[RetrievedChunk]:
         if not query.strip():
-            raise ValueError("Query cannot be empty.")
+            raise ValueError("Sorgu boş olamaz.")
         if top_k < 1:
-            raise ValueError("top_k must be at least 1.")
+            raise ValueError("top_k en az 1 olmalıdır.")
 
         metadata = self.database.get_metadata()
         indexed_alias = metadata.get("embedding_model_alias")
         if indexed_alias != self.embedding_model.model_alias:
             raise RuntimeError(
-                "Embedding model mismatch: the SQLite index uses "
-                f"'{indexed_alias or '<missing>'}', but queries use "
-                f"'{self.embedding_model.model_alias}'. Re-run ingestion."
+                "Embedding modeli uyuşmuyor: SQLite indeksi "
+                f"'{indexed_alias or '<eksik>'}', sorgular ise "
+                f"'{self.embedding_model.model_alias}' kullanıyor. Ingestion'ı yeniden çalıştırın."
             )
         stored_chunks = self.database.get_chunks()
         if not stored_chunks:
-            raise RuntimeError("The SQLite knowledge index is empty. Run ingestion first.")
+            raise RuntimeError("SQLite knowledge indeksi boş. Önce ingestion çalıştırın.")
 
         query_embedding = self.embedding_model.embed_query(query)
         ranked = sorted(

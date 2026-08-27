@@ -1,4 +1,4 @@
-"""SQLite persistence for chunk text, source metadata, and embeddings."""
+"""Parça metni, kaynak bilgisi ve embeddingler için SQLite kalıcılığı."""
 
 from __future__ import annotations
 
@@ -59,11 +59,11 @@ class KnowledgeDatabase:
         *,
         embedding_model_alias: str,
     ) -> None:
-        """Atomically rebuild the knowledge index without creating duplicates."""
+        """Duplicate oluşturmadan knowledge indeksini atomik olarak yeniden kur."""
         if len(chunks) != len(embeddings):
-            raise ValueError("Chunk and embedding counts must match.")
+            raise ValueError("Parça ve embedding sayıları eşleşmelidir.")
         if not chunks:
-            raise ValueError("Cannot build an index without chunks.")
+            raise ValueError("Parça olmadan indeks oluşturulamaz.")
 
         dimension: int | None = None
         rows: list[tuple[str, int, str, str]] = []

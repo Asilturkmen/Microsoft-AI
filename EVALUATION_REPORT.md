@@ -1,25 +1,27 @@
-# Evaluation Report
+# Değerlendirme Raporu
 
 Tarih: 2026-08-27  
 Platform: Apple M1, 8 GB RAM, macOS arm64  
 Foundry Local SDK: 1.2.4  
-Chat modeli: `qwen3.5-2b-text`  
+Sohbet modeli: `qwen3.5-2b-text`
 Embedding modeli: `qwen3-embedding-0.6b`
 
 ## Sonuç özeti
 
-- Unit suite: **24 PASS**, 2 gerçek-model testi normal koşuda bilinçli olarak SKIP
-- Gerçek Foundry integration suite: **2/2 PASS**
-- Gerçek evaluation matrisi: **12/12 PASS**
-- Answerable: **5/5 PASS**
-- Unanswerable: **3/3 PASS**
-- Edge case: **4/4 PASS**
-- Hallucination fallback: **PASS**
-- Source doğruluğu: **PASS**
+- Birim testleri: **24 PASS**, 2 gerçek-model testi normal koşuda bilinçli olarak SKIP
+- Gerçek Foundry entegrasyon testleri: **2/2 PASS**
+- Türkçe değerlendirme matrisi: **12/12 PASS**
+- Cevaplanabilir: **5/5 PASS**
+- Cevaplanamaz: **3/3 PASS**
+- Sınır durumları: **4/4 PASS**
+- Kontrollü bilinmeyen cevabı: **PASS**
+- Kaynak doğruluğu: **PASS**
 
-## Evaluation yöntemi
+Bu sonuçlar Türkçeleştirilmiş uygulama, istem, hata mesajı ve test akışının teknik olarak çalıştığını doğrular. Ancak `knowledge/` dosyaları kullanıcının isteğiyle değiştirilmemiştir ve hâlâ İngilizcedir. Bu nedenle Türkçe cevapların dil kalitesi geçicidir; kullanıcı güvenilir Türkçe belgeleri ekledikten sonra nihai içerik denetimi ve eşik kalibrasyonu yeniden yapılmalıdır.
 
-Kalıcı vakalar `tests/evaluation_cases.json` içindedir. `scripts/evaluate.py` iki Foundry modelini bir kez yükler; bütün vakaları aynı model yaşam döngüsünde çalıştırır; source, gerekli cevap terimi, fallback ve hata beklentilerini denetler; cold-load ile warm-query sürelerini ayrı ölçer.
+## Değerlendirme yöntemi
+
+Kalıcı vakalar `tests/evaluation_cases.json` içindedir. `scripts/evaluate.py` iki Foundry modelini bir kez yükler; bütün vakaları aynı model yaşam döngüsünde çalıştırır; kaynak, gerekli cevap terimi, kontrollü bilinmeyen cevabı ve hata beklentilerini denetler; soğuk yükleme ile sıcak sorgu sürelerini ayrı ölçer.
 
 Çalıştırılan komutlar:
 
@@ -29,50 +31,57 @@ env RUN_REAL_FOUNDRY_TESTS=1 .venv/bin/python -m unittest discover -s tests -p '
 .venv/bin/python scripts/evaluate.py
 ```
 
-## Son gerçek evaluation matrisi
+## Son gerçek Türkçe değerlendirme matrisi
 
-| ID | Kategori | Beklenen/gerçek source | Top score | Süre | Sonuç |
+| ID | Kategori | Beklenen/gerçek kaynak | En yüksek skor | Süre | Sonuç |
 |---|---|---|---:|---:|---|
-| answerable_normalization | Answerable | `databases.md` | 0.777587 | 2.799 sn | PASS |
-| answerable_tcp_udp | Answerable | `networking.md` | 0.755604 | 2.875 sn | PASS |
-| answerable_polymorphism | Answerable | `oop.md` | 0.783113 | 2.213 sn | PASS |
-| answerable_virtual_memory | Answerable | `operating-systems.md` | 0.710864 | 2.568 sn | PASS |
-| answerable_integration_tests | Answerable | `software-testing.md` | 0.685905 | 2.338 sn | PASS |
-| unanswerable_world_cup | Unanswerable | source yok/fallback | 0.197778 | 0.225 sn | PASS |
-| unanswerable_tiramisu | Unanswerable | source yok/fallback | 0.254877 | 0.067 sn | PASS |
-| unanswerable_photosynthesis | Unanswerable | source yok/fallback | 0.298080 | 0.064 sn | PASS |
-| edge_empty | Edge | `ValueError` | n/a | <0.001 sn | PASS |
-| edge_short | Edge | `networking.md` | 0.631758 | 2.188 sn | PASS |
-| edge_general | Edge | source yok/fallback | 0.307663 | 0.065 sn | PASS |
-| edge_cross_document | Edge | `git-basics.md`, `databases.md` | 0.616530 | 2.445 sn | PASS |
+| cevaplanabilir_acid | Cevaplanabilir | `databases.md` | 0.667166 | 4.771 sn | PASS |
+| cevaplanabilir_tcp_udp | Cevaplanabilir | `networking.md` | 0.620011 | 5.766 sn | PASS |
+| cevaplanabilir_web_api | Cevaplanabilir | `web-development.md` | 0.683195 | 8.305 sn | PASS |
+| cevaplanabilir_git_dali | Cevaplanabilir | `git-basics.md` | 0.614069 | 12.964 sn | PASS |
+| cevaplanabilir_test_seviyeleri | Cevaplanabilir | `software-testing.md` | 0.666048 | 7.671 sn | PASS |
+| cevaplanamaz_dunya_kupasi | Cevaplanamaz | kaynak yok/kontrollü cevap | 0.158867 | 0.322 sn | PASS |
+| cevaplanamaz_tiramisu | Cevaplanamaz | kaynak yok/kontrollü cevap | 0.204500 | 0.074 sn | PASS |
+| cevaplanamaz_fotosentez | Cevaplanamaz | kaynak yok/kontrollü cevap | 0.248889 | 0.076 sn | PASS |
+| sinir_bos | Sınır | `ValueError` | yok | 0.004 sn | PASS |
+| sinir_kisa | Sınır | `networking.md` | 0.631758 | 4.250 sn | PASS |
+| sinir_genel | Sınır | kaynak yok/kontrollü cevap | 0.283010 | 0.225 sn | PASS |
+| sinir_coklu_belge | Sınır | kaynak yok/kontrollü cevap | 0.480033 | 0.096 sn | PASS |
 
-## Timing
+## Süreler
 
-- Cold model load: **14.844 sn**
-- Warm query minimum: **0.064 sn**
-- Warm query median: **2.213 sn**
-- Warm query maximum: **2.875 sn**
+- Soğuk model yükleme: **14.245 sn**
+- Sıcak sorgu minimumu: **0.074 sn**
+- Sıcak sorgu medyanı: **4.250 sn**
+- Sıcak sorgu maksimumu: **12.964 sn**
 
-Fallback sorguları LLM generation çalıştırmadığı için en hızlı gruptur. Gerçek answer-generation sorguları bu ölçümde yaklaşık 2.2–2.9 saniye sürmüştür. İlk model indirmeleri cold-load süresine dahil değildir; modeller önceden cache'lenmiştir.
+Kontrollü cevap verilen sorgularda LLM üretimi çalışmadığı için bu grup daha hızlıdır. İlk model indirmeleri soğuk yükleme süresine dahil değildir; modeller önceden önbelleğe alınmıştır.
 
-## Grounding ve threshold gerekçesi
+## Grounding ve eşik gerekçesi
 
-Threshold seçilmeden önce gerçek retrieval score dağılımı ölçüldü:
+Mevcut İngilizce örnek belgelerde güvenilir seçilen Türkçe sorgular için ölçülen dağılım:
 
-- 7 answerable top-1: **0.650893–0.783113**
-- 5 unanswerable top-1: **0.197778–0.298080**
+- Cevaplanabilir en yüksek skorları: **0.614069–0.683195**
+- Cevaplanamaz en yüksek skorları: **0.158867–0.256008**
 
-İki küme arasındaki boşluk nedeniyle `0.50` konservatif eşik olarak seçildi. Eşik altı sorgular chat completion'a gönderilmeden deterministik olarak şu yanıtı verir:
+`0.50` eşiği bu geçici veri kümesinde iki grup arasında kalır. Eşik altındaki sorgular sohbet modeline gönderilmeden deterministik olarak şu yanıtı verir:
 
 ```text
-The information is not available in the provided documents.
+Bu bilgi sağlanan belgelerde bulunmuyor.
 ```
 
-İlk 0.5B chat modeli strict prompt'a rağmen unsupported ayrıntılar ve bir TCP/UDP doğruluk hatası üretti. Bunun üzerine gerçek katalogdaki `qwen3.5-2b-text` modeline geçildi. Son evaluation yanıtları source içerikleriyle uyumlu, kısa ve doğru bulundu.
+Bu değer nihai değildir. Türkçe belgeler, dosya adları ve konu dağılımı retrieval skorlarını değiştireceğinden, belge değişiminden sonra `scripts/ingest.py` ve `scripts/evaluate.py` yeniden çalıştırılmalıdır.
+
+## Dil kalitesi incelemesi
+
+Otomatik kontroller doğru kaynağın getirildiğini, beklenen teknik terimlerin bulunduğunu ve bilinmeyen soruların reddedildiğini doğruladı. Manuel incelemede İngilizce bağlamdan Türkçe üretim yapılırken bazı doğal olmayan ifadeler görüldü. Örneğin model bir çalıştırmada “consistency” terimini “konsantrasyon”, “commit” terimini ise “komite” olarak çevirdi; bazı cevaplar da hedeflenenden uzun oldu.
+
+Bu kusurlar uygulama arayüzünden değil, geçici İngilizce kaynak metinlerin küçük yerel model tarafından anlık çevrilmesinden kaynaklanır. Kullanıcının ekleyeceği Türkçe belgeler üzerinde aynı sorularla manuel doğruluk ve akıcılık denetimi yapılmadan Türkçe içerik kalitesi nihai kabul edilmemelidir.
 
 ## Bilinen sınırlamalar
 
-- Threshold mevcut yedi doküman ve değerlendirme sorularına göre kalibre edilmiştir; knowledge domain ciddi biçimde değişirse yeniden ölçülmelidir.
+- `knowledge/` içeriği şu anda İngilizcedir ve bilerek değiştirilmemiştir.
+- Eşik mevcut örnek belgeler ve seçilmiş Türkçe değerlendirme sorularına göre geçici olarak doğrulanmıştır.
 - Brute-force cosine retrieval küçük koleksiyon için uygundur; çok büyük koleksiyonlarda vector index gerekebilir.
-- Local LLM çıktısı generatif olduğundan kelime seçimi çalıştırmalar arasında küçük farklılık gösterebilir; evaluation source ve anlamlı anahtar terim kontrollerini birlikte kullanır.
-- 8 GB cihazda cold model load warm sorgudan belirgin biçimde uzundur.
+- Yerel model çıktısı generatif olduğundan kelime seçimi çalıştırmalar arasında küçük farklılık gösterebilir.
+- 8 GB cihazda soğuk model yükleme sıcak sorgudan belirgin biçimde uzundur.

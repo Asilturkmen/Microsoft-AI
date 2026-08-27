@@ -1,4 +1,4 @@
-# Local RAG Study Assistant with Microsoft Foundry Local
+# Microsoft Foundry Local ile Yerel RAG Çalışma Asistanı
 
 Tamamen cihaz üzerinde çalışan bu uygulama, yerel yazılım mühendisliği notlarında semantic arama yapar ve yalnızca bulunan belge parçalarına dayanarak cevap üretir. Normal soru-cevap çalışması OpenAI cloud, Azure OpenAI veya başka bir uzak LLM servisi gerektirmez.
 
@@ -12,19 +12,19 @@ Retrieval-Augmented Generation (RAG), cevap üretmeden önce ilgili bilgiyi bir 
 
 ```mermaid
 flowchart TD
-    A[Markdown/TXT documents] --> B[Document loader]
-    B --> C[Heading-aware chunking]
-    C --> D[Foundry Local embedding model]
-    D --> E[(SQLite: chunks + embeddings + metadata)]
-    Q[User question] --> F[Same local embedding model]
+    A[Markdown/TXT belgeleri] --> B[Belge yükleyici]
+    B --> C[Başlık duyarlı parçalama]
+    C --> D[Foundry Local embedding modeli]
+    D --> E[(SQLite: parçalar + embeddingler + metadata)]
+    Q[Kullanıcı sorusu] --> F[Aynı yerel embedding modeli]
     F --> G[Cosine similarity]
     E --> G
-    G --> H[Top 3 chunks]
-    H --> I{Top score >= 0.50?}
-    I -- No --> U[Deterministic unknown answer]
-    I -- Yes --> J[Grounded prompt]
-    J --> K[Foundry Local chat model]
-    K --> L[Answer + source filenames]
+    G --> H[En alakalı 3 parça]
+    H --> I{En yüksek skor >= 0.50?}
+    I -- Hayır --> U[Deterministik bilinmeyen cevabı]
+    I -- Evet --> J[Belgeye dayalı istem]
+    J --> K[Foundry Local sohbet modeli]
+    K --> L[Cevap + kaynak dosya adları]
 ```
 
 ## Foundry Local'ın rolü
@@ -44,9 +44,9 @@ Microsoft'un güncel kaynakları:
 
 > `foundry-local` adlı, `-sdk` içermeyen PyPI paketi Microsoft SDK'sı değildir ve bu projede kullanılmaz.
 
-## Knowledge base
+## Knowledge base ve Türkçe belge ekleme
 
-`knowledge/` altında yedi özgün Markdown dokümanı bulunur:
+`knowledge/` altında şu anda yedi örnek Markdown dokümanı bulunur:
 
 - relational databases
 - Git basics
@@ -57,6 +57,15 @@ Microsoft'un güncel kaynakları:
 - web development
 
 Loader `.md` ve `.txt` dosyalarını UTF-8 olarak okur, boş dosyaları güvenle ele alır ve source filename bilgisini korur. PDF zorunlu minimum kapsamında değildir.
+
+Uygulama arayüzü, prompt ve cevap dili Türkçedir. Mevcut örnek knowledge içerikleri kullanıcı tarafından güvenilir Türkçe belgelerle değiştirilecektir; bu dosyalar otomatik çeviriyle değiştirilmemiştir. Yeni belgeler eklendikten sonra mutlaka şu işlemler yeniden yapılmalıdır:
+
+```bash
+python scripts/ingest.py
+python scripts/evaluate.py
+```
+
+Belge adları veya konuları değişirse `tests/evaluation_cases.json` içindeki beklenen kaynaklar ve sorular da yeni koleksiyona uyarlanmalıdır. Threshold yeni Türkçe knowledge skorlarına göre tekrar doğrulanmalıdır.
 
 ## Ingestion, embeddings ve SQLite
 
@@ -74,7 +83,7 @@ Rebuild transaction önceki index'i atomik olarak değiştirir; tekrar çalışt
 
 Kullanıcı sorusu belge ingestion'ında kullanılan aynı embedding modeliyle vektöre çevrilir. SQLite'taki bütün vektörlerle cosine similarity hesaplanır ve varsayılan top 3 chunk score sırasıyla seçilir.
 
-Gerçek testlerde answerable top-1 skorları 0.650893–0.783113, unanswerable skorları 0.197778–0.298080 aralığında kaldı. Bu dağılıma göre 0.50 threshold seçildi. Eşik altındaki sorgu LLM'e gönderilmez. Eşik üstünde source etiketli context ve soru strict system prompt ile local chat modeline verilir.
+Mevcut İngilizce örnek knowledge üzerinde güvenilir seçilen Türkçe answerable top-1 skorları 0.614069–0.683195, unanswerable skorları 0.158867–0.256008 aralığında kaldı. Bu dağılımda 0.50 threshold iki grup arasında güvenli kalır. Eşik altındaki sorgu LLM'e gönderilmez. Eşik üstünde source etiketli context ve soru, yalnızca belgelere dayanıp Türkçe cevap vermesini zorunlu kılan system prompt ile local chat modeline verilir. Kullanıcının ekleyeceği Türkçe belgelerden sonra bu skorlar tekrar ölçülmelidir.
 
 ## Kurulum
 
@@ -110,12 +119,12 @@ python scripts/ingest.py
 Beklenen özet:
 
 ```text
-Documents loaded: 7
-Chunks generated: 21
-Chunks embedded: 21
-Embedding dimension: 1024
-Rows stored in SQLite: 21
-Ingestion completed successfully.
+Yüklenen belge: 7
+Üretilen parça: 21
+Embedding oluşturulan parça: 21
+Embedding boyutu: 1024
+SQLite'a kaydedilen satır: 21
+Belge indeksleme başarıyla tamamlandı.
 ```
 
 ## Uygulamayı çalıştırma
@@ -124,23 +133,23 @@ Ingestion completed successfully.
 python app.py
 ```
 
-Ardışık sorular sorulabilir. `exit`, `quit` veya `q` temiz çıkış yapar. Boş giriş güvenli biçimde reddedilir.
+Ardışık Türkçe sorular sorulabilir. `çıkış`, `çık`, `exit`, `quit` veya `q` temiz çıkış yapar. Boş giriş güvenli biçimde reddedilir.
 
 Örnek sorular:
 
 ```text
-What is database normalization and why is it used?
-How are TCP and UDP different?
-What does polymorphism allow a program to do?
-What is virtual memory?
-What do integration tests verify?
-Who won the 2026 FIFA World Cup?
+ACID transaction özellikleri nelerdir?
+TCP ile UDP arasındaki farklar nelerdir?
+Bir web API hangi HTTP yöntemlerini kullanır?
+Git dalı ve merge işlemi nedir?
+Unit test ile end-to-end test arasındaki fark nedir?
+2026 FIFA Dünya Kupası'nı kim kazandı?
 ```
 
 Son soru kasıtlı olarak knowledge base dışındadır ve şu cevabı vermelidir:
 
 ```text
-The information is not available in the provided documents.
+Bu bilgi sağlanan belgelerde bulunmuyor.
 ```
 
 ## Test ve evaluation
@@ -173,7 +182,7 @@ python scripts/smoke_rag.py
 python scripts/smoke_unknown.py
 ```
 
-Son doğrulanan sonuçlar `EVALUATION_REPORT.md` içindedir: 24 unit PASS, 2 gerçek integration PASS ve 12/12 evaluation PASS. Cold model load 14.844 sn; warm query median 2.213 sn olarak ölçüldü.
+Son doğrulanan sonuçlar `EVALUATION_REPORT.md` içindedir: 24 birim testi PASS, 2 gerçek entegrasyon testi PASS ve Türkçe 12/12 değerlendirme vakası PASS. Soğuk model yükleme 14.245 sn; sıcak sorgu medyanı 4.250 sn olarak ölçüldü. Bu otomatik sonuçlar Türkçe çalışma akışını doğrular; mevcut belgeler İngilizce olduğu için cevap akıcılığına ilişkin nihai onay, kullanıcı Türkçe belgeleri ekledikten sonra verilecektir.
 
 ## Local/offline davranış
 
@@ -204,7 +213,7 @@ data/                     runtime SQLite (Git dışında)
 
 - Yalnızca Markdown ve TXT desteklenir.
 - Brute-force cosine search küçük knowledge base için tasarlanmıştır.
-- Threshold domain veya belge koleksiyonu ciddi biçimde değişirse yeniden kalibre edilmelidir.
+- Threshold, özellikle knowledge belgelerinin dili veya içeriği değişirse yeniden kalibre edilmelidir.
 - Model çıktısı generatif olduğu için küçük ifade farklılıkları olabilir.
 - Cold model yükleme 8 GB cihazda warm sorgulardan daha uzundur.
 - CLI zorunlu minimum UI'dır; web UI çekirdek teslim için eklenmemiştir.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run answerable questions through the real local RAG pipeline."""
+"""Cevaplanabilir Türkçe soruları gerçek yerel RAG hattında çalıştır."""
 
 from __future__ import annotations
 
@@ -15,26 +15,26 @@ from rag.pipeline import RAGPipeline  # noqa: E402
 
 
 QUESTIONS = [
-    "What is database normalization and why is it used?",
-    "How are TCP and UDP different?",
-    "What does polymorphism allow a program to do?",
+    "ACID transaction özellikleri nelerdir?",
+    "TCP ile UDP arasındaki farklar nelerdir?",
+    "Unit test ile end-to-end test arasındaki fark nedir?",
 ]
 
 
 def main() -> int:
-    print("Loading local embedding and chat models...", flush=True)
+    print("Yerel embedding ve sohbet modelleri yükleniyor...", flush=True)
     with RAGPipeline() as pipeline:
-        print("Local RAG pipeline ready.", flush=True)
+        print("Yerel RAG hattı hazır.", flush=True)
         for question in QUESTIONS:
             result = pipeline.answer_query(question)
-            print(f"\nQuestion: {question}")
-            print(f"Answer: {result.answer}")
-            print(f"Sources: {', '.join(result.sources)}")
+            print(f"\nSoru: {question}")
+            print(f"Cevap: {result.answer}")
+            print(f"Kaynaklar: {', '.join(result.sources)}")
             print(
-                "Scores: "
+                "Skorlar: "
                 + ", ".join(f"{chunk.score:.4f}" for chunk in result.retrieved_chunks)
             )
-    print("Local models unloaded.")
+    print("Yerel modeller kaldırıldı.")
     return 0
 
 

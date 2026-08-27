@@ -33,7 +33,7 @@ class RecordingChatModel:
 
     def complete_messages(self, messages: list[dict[str, str]]) -> str:
         self.messages = messages
-        return "Normalization reduces duplicate data."
+        return "Normalizasyon yinelenen verileri azaltır."
 
     def close(self) -> None:
         self.closed = True
@@ -50,14 +50,14 @@ class PipelineTests(unittest.TestCase):
             )
             chat = RecordingChatModel()
             pipeline = RAGPipeline(database, FakeEmbeddingModel(), chat)
-            result = pipeline.answer_query("Why normalize data?")
+            result = pipeline.answer_query("Veriler neden normalize edilir?")
             pipeline.close()
 
         self.assertEqual(result.sources, ["databases.md"])
-        self.assertIn("only facts explicitly stated", chat.messages[0]["content"])
+        self.assertIn("yalnızca belgelere dayanan", chat.messages[0]["content"])
         self.assertIn("databases.md", chat.messages[1]["content"])
         self.assertIn("Normalization reduces duplicated data", chat.messages[1]["content"])
-        self.assertIn("Why normalize data?", chat.messages[1]["content"])
+        self.assertIn("Veriler neden normalize edilir?", chat.messages[1]["content"])
         self.assertTrue(chat.loaded)
         self.assertTrue(chat.closed)
 
@@ -67,7 +67,7 @@ class PipelineTests(unittest.TestCase):
             pipeline = RAGPipeline(
                 KnowledgeDatabase(Path(tmp) / "knowledge.db"), FakeEmbeddingModel(), chat
             )
-            with self.assertRaisesRegex(ValueError, "empty"):
+            with self.assertRaisesRegex(ValueError, "boş"):
                 pipeline.answer_query("  ")
         self.assertFalse(chat.loaded)
 
@@ -81,7 +81,7 @@ class PipelineTests(unittest.TestCase):
             )
             chat = RecordingChatModel()
             pipeline = RAGPipeline(database, FakeEmbeddingModel(), chat)
-            result = pipeline.answer_query("unrelated question")
+            result = pipeline.answer_query("ilgisiz soru")
             pipeline.close()
 
         self.assertEqual(result.answer, UNKNOWN_ANSWER)

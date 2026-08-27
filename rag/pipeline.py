@@ -1,4 +1,4 @@
-"""Complete retrieval-augmented answer pipeline using only local models."""
+"""Yalnızca yerel modelleri kullanan tam RAG cevap hattı."""
 
 from __future__ import annotations
 
@@ -12,15 +12,18 @@ from rag.llm import FoundryChatModel
 from rag.retrieval import RetrievedChunk, SemanticRetriever
 
 
-SYSTEM_PROMPT = """You are a strictly document-grounded study assistant.
-Answer using only facts explicitly stated in the supplied document context.
-Do not infer extra benefits, causes, examples, or explanations. Do not use general knowledge.
-Before returning, ensure every factual claim can be traced directly to a context sentence.
-If the context does not contain enough information, say exactly: "The information is not available in the provided documents."
-Return exactly one short answer sentence. Reuse the context's wording where practical.
-Do not add a conclusion, commentary, importance claim, or source citation; sources are shown separately."""
+SYSTEM_PROMPT = """Sen yalnızca belgelere dayanan bir Türkçe çalışma asistanısın.
+Soruyu, sağlanan belge bağlamında açıkça yazan olguları kullanarak Türkçe cevapla.
+Bağlam başka bir dilde olsa bile cevabın doğal ve anlaşılır Türkçe olmalıdır.
+Ek yarar, neden, örnek veya açıklama çıkarımı yapma; genel bilgini kullanma.
+Cevabı vermeden önce her olgusal iddianın doğrudan bir bağlam cümlesine dayandığını doğrula.
+Bağlamdaki teknik terimleri, kısaltmaları ve kod adlarını değiştirmeden koru.
+Soru bir liste istiyorsa bağlamda verilen ilgili öğeleri eksiksiz belirt.
+Bağlam yeterli bilgi içermiyorsa yalnızca şunu söyle: "Bu bilgi sağlanan belgelerde bulunmuyor."
+En fazla iki kısa cevap cümlesi döndür. Mümkün olduğunda bağlamdaki ifadeleri doğru biçimde Türkçeye aktar.
+Sonuç, yorum, önem iddiası veya kaynak atfı ekleme; kaynaklar ayrıca gösterilecektir."""
 
-UNKNOWN_ANSWER = "The information is not available in the provided documents."
+UNKNOWN_ANSWER = "Bu bilgi sağlanan belgelerde bulunmuyor."
 
 
 class ChatProvider(Protocol):
@@ -41,7 +44,7 @@ class AnswerResult:
 
 def build_messages(question: str, chunks: list[RetrievedChunk]) -> list[dict[str, str]]:
     context = "\n\n".join(
-        f"[Source: {chunk.source}, chunk {chunk.chunk_index}]\n{chunk.content}"
+        f"[Kaynak: {chunk.source}, parça {chunk.chunk_index}]\n{chunk.content}"
         for chunk in chunks
     )
     return [
@@ -49,15 +52,15 @@ def build_messages(question: str, chunks: list[RetrievedChunk]) -> list[dict[str
         {
             "role": "user",
             "content": (
-                f"Document context:\n{context}\n\nQuestion: {question}\n\n"
-                "Return only one directly supported answer sentence and nothing else."
+                f"Belge bağlamı:\n{context}\n\nSoru: {question}\n\n"
+                "Doğrudan cevap ver; en fazla iki Türkçe cümle kullan ve teknik terimleri aynen koru."
             ),
         },
     ]
 
 
 class RAGPipeline:
-    """Keep both models loaded across multiple questions, then cleanly unload."""
+    """İki modeli birden çok soru boyunca yüklü tut ve sonunda temizle."""
 
     def __init__(
         self,
@@ -84,7 +87,7 @@ class RAGPipeline:
 
     def answer_query(self, question: str, top_k: int = TOP_K) -> AnswerResult:
         if not question.strip():
-            raise ValueError("Question cannot be empty.")
+            raise ValueError("Soru boş olamaz.")
         self.load()
         chunks = self.retriever.get_top_chunks(question, top_k=top_k)
         if chunks[0].score < UNKNOWN_RELEVANCE_THRESHOLD:

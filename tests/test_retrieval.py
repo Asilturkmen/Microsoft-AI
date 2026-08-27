@@ -24,7 +24,7 @@ class RetrievalTests(unittest.TestCase):
         self.assertAlmostEqual(cosine_similarity([1.0, 0.0], [1.0, 0.0]), 1.0)
         self.assertAlmostEqual(cosine_similarity([1.0, 0.0], [0.0, 1.0]), 0.0)
         self.assertEqual(cosine_similarity([0.0, 0.0], [1.0, 0.0]), 0.0)
-        with self.assertRaisesRegex(ValueError, "dimension"):
+        with self.assertRaisesRegex(ValueError, "boyutları"):
             cosine_similarity([1.0], [1.0, 2.0])
 
     def test_ranks_top_chunks_with_scores_and_sources(self) -> None:
@@ -55,7 +55,7 @@ class RetrievalTests(unittest.TestCase):
                 [[1.0]],
                 embedding_model_alias="indexed-model",
             )
-            with self.assertRaisesRegex(RuntimeError, "model mismatch"):
+            with self.assertRaisesRegex(RuntimeError, "modeli uyuşmuyor"):
                 SemanticRetriever(
                     database, FakeEmbeddingModel([1.0])
                 ).get_top_chunks("question")
@@ -65,7 +65,7 @@ class RetrievalTests(unittest.TestCase):
             retriever = SemanticRetriever(
                 KnowledgeDatabase(Path(tmp) / "knowledge.db"), FakeEmbeddingModel([1.0])
             )
-            with self.assertRaisesRegex(ValueError, "empty"):
+            with self.assertRaisesRegex(ValueError, "boş"):
                 retriever.get_top_chunks(" ")
             with self.assertRaisesRegex(ValueError, "top_k"):
                 retriever.get_top_chunks("question", top_k=0)

@@ -1,4 +1,4 @@
-"""Foundry Local chat model lifecycle and inference."""
+"""Foundry Local sohbet modeli yaşam döngüsü ve çıkarımı."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from rag.foundry_runtime import get_foundry_manager
 
 
 class FoundryChatModel:
-    """Download, load, use, and unload one Foundry Local chat model."""
+    """Bir Foundry Local sohbet modelini indir, yükle, kullan ve kaldır."""
 
     def __init__(self, model_alias: str = CHAT_MODEL_ALIAS) -> None:
         self.model_alias = model_alias
@@ -17,7 +17,7 @@ class FoundryChatModel:
         self._client: Any | None = None
 
     def load(self) -> None:
-        """Initialize Foundry Local and load the configured model once."""
+        """Foundry Local'ı başlat ve yapılandırılan modeli bir kez yükle."""
         if self._client is not None:
             return
 
@@ -26,7 +26,7 @@ class FoundryChatModel:
         model = manager.catalog.get_model(self.model_alias)
         if model is None:
             raise RuntimeError(
-                f"Foundry Local catalog does not contain model alias: {self.model_alias}"
+                f"Foundry Local kataloğunda model alias'ı bulunamadı: {self.model_alias}"
             )
 
         model.download()
@@ -34,29 +34,29 @@ class FoundryChatModel:
         self._model = model
         client = model.get_chat_client()
         client.settings.temperature = 0.0
-        client.settings.max_tokens = 256
+        client.settings.max_tokens = 160
         client.settings.random_seed = 42
         self._client = client
 
     def complete(self, prompt: str) -> str:
-        """Return one local chat completion for a non-empty prompt."""
+        """Boş olmayan bir istem için yerel sohbet yanıtı döndür."""
         if not prompt.strip():
-            raise ValueError("Prompt cannot be empty.")
+            raise ValueError("İstem boş olamaz.")
         return self.complete_messages([{"role": "user", "content": prompt}])
 
     def complete_messages(self, messages: list[dict[str, str]]) -> str:
-        """Return one local completion for an explicit chat message list."""
+        """Açık bir sohbet mesajı listesi için yerel yanıt döndür."""
         if not messages or any(not message.get("content", "").strip() for message in messages):
-            raise ValueError("Chat messages cannot be empty.")
+            raise ValueError("Sohbet mesajları boş olamaz.")
         self.load()
         response = self._client.complete_chat(messages)
         content = response.choices[0].message.content
         if not content:
-            raise RuntimeError("Foundry Local returned an empty chat response.")
+            raise RuntimeError("Foundry Local boş bir sohbet yanıtı döndürdü.")
         return content.strip()
 
     def close(self) -> None:
-        """Unload the model and release its local runtime resources."""
+        """Modeli kaldır ve yerel çalışma zamanı kaynaklarını serbest bırak."""
         if self._model is not None:
             self._model.unload()
         self._model = None

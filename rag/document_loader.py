@@ -1,4 +1,4 @@
-"""Load plain-text knowledge documents while preserving source metadata."""
+"""Kaynak bilgisini koruyarak düz metin bilgi belgelerini yükle."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ SUPPORTED_SUFFIXES = frozenset({".md", ".txt"})
 
 
 class UnsupportedDocumentError(ValueError):
-    """Raised when a caller explicitly requests an unsupported file type."""
+    """Desteklenmeyen bir dosya türü açıkça istendiğinde oluşturulur."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,24 +20,24 @@ class Document:
 
 
 def load_document(path: Path) -> Document:
-    """Read one UTF-8 Markdown or text document."""
+    """Bir UTF-8 Markdown veya metin belgesini oku."""
     path = Path(path)
     if path.suffix.lower() not in SUPPORTED_SUFFIXES:
         supported = ", ".join(sorted(SUPPORTED_SUFFIXES))
         raise UnsupportedDocumentError(
-            f"Unsupported document format '{path.suffix or '<none>'}'. "
-            f"Supported formats: {supported}."
+            f"Desteklenmeyen belge biçimi: '{path.suffix or '<uzantı yok>'}'. "
+            f"Desteklenen biçimler: {supported}."
         )
     if not path.is_file():
-        raise FileNotFoundError(f"Document does not exist or is not a file: {path}")
+        raise FileNotFoundError(f"Belge bulunamadı veya bir dosya değil: {path}")
     return Document(source=path.name, content=path.read_text(encoding="utf-8"))
 
 
 def load_documents(directory: Path) -> list[Document]:
-    """Load supported files from a directory in deterministic filename order."""
+    """Klasördeki desteklenen dosyaları ada göre kararlı sırada yükle."""
     directory = Path(directory)
     if not directory.is_dir():
-        raise FileNotFoundError(f"Knowledge directory does not exist: {directory}")
+        raise FileNotFoundError(f"Knowledge klasörü bulunamadı: {directory}")
     paths = sorted(
         (
             path

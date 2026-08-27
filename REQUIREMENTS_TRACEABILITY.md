@@ -1,6 +1,6 @@
-# Requirements Traceability
+# Gereksinim İzlenebilirlik Matrisi
 
-Son doğrulama: 2026-08-27. Hiçbir mandatory satır yalnızca kod varlığına dayanarak PASS yapılmadı; gerçek Foundry, SQLite ve E2E kanıtları final audit sırasında yeniden çalıştırıldı.
+Son doğrulama: 2026-08-27. Hiçbir zorunlu satır yalnızca kod varlığına dayanarak PASS yapılmadı; gerçek Foundry, SQLite ve uçtan uca kanıtları son denetim sırasında yeniden çalıştırıldı. Türkçe uygulama akışı doğrulandı; `knowledge/` içeriği kullanıcı tarafından değiştirileceği için nihai Türkçe içerik kalitesi ayrıca beklemededir.
 
 | # | Requirement | Implementation evidence | Test/runtime evidence | Status |
 |---:|---|---|---|---|
@@ -19,9 +19,9 @@ Son doğrulama: 2026-08-27. Hiçbir mandatory satır yalnızca kod varlığına 
 | 13 | Semantic/cosine similarity çalışıyor | `rag/retrieval.py::cosine_similarity` | unit numeric tests + real score rankings | PASS |
 | 14 | En alakalı 2–3 chunk seçiliyor | `TOP_K=3`, `SemanticRetriever.get_top_chunks` | final evaluation top-3 sources/scores | PASS |
 | 15 | Retrieved context local LLM'e gönderiliyor | `build_messages`, `RAGPipeline.answer_query` | pipeline recording testi + real E2E | PASS |
-| 16 | LLM context'e dayanarak cevap üretiyor | strict `SYSTEM_PROMPT` | 5/5 answerable evaluation + manual grounding review | PASS |
+| 16 | LLM bağlama dayanarak Türkçe cevap üretiyor | Türkçe ve katı `SYSTEM_PROMPT` | 5/5 cevaplanabilir otomatik değerlendirme; içerik akıcılığı Türkçe belgelerden sonra yeniden incelenecek | PASS* |
 | 17 | Source filename gösteriliyor | `AnswerResult.sources`, `app._show_result` | real CLI dry-run, source assertions | PASS |
-| 18 | Bilgi yoksa sistem açıkça söylüyor | threshold + `UNKNOWN_ANSWER` | 3/3 unanswerable evaluation | PASS |
+| 18 | Bilgi yoksa sistem açıkça söylüyor | eşik + `UNKNOWN_ANSWER` | 3/3 cevaplanamaz; tam yanıt: `Bu bilgi sağlanan belgelerde bulunmuyor.` | PASS |
 | 19 | CLI kullanılabiliyor | `app.py` | PTY: empty, multiple questions, exit code 0 | PASS |
 | 20 | Answerable testler başarılı | evaluation cases | 5/5 PASS | PASS |
 | 21 | Unanswerable testler başarılı | evaluation cases | 3/3 PASS | PASS |
@@ -40,7 +40,7 @@ Son doğrulama: 2026-08-27. Hiçbir mandatory satır yalnızca kod varlığına 
 | 34 | Gerçek Foundry chat inference yapıldı | `scripts/smoke_chat.py` | gerçek qwen3.5 hello + E2E answers | PASS |
 | 35 | Remote OpenAI/Azure key gerekmiyor | projede credential lookup yok | üç env key NOT_SET iken full E2E PASS | PASS |
 | 36 | Cache sonrası normal inference cloud istemiyor | SDK native CoreInterop + local cache | chat/embedding execute_command audit; no remote URL | PASS |
-| 37 | Warm response time raporlandı | `scripts/evaluate.py` | cold 14.844 sn; warm median 2.213 sn | PASS |
+| 37 | Sıcak sorgu süresi raporlandı | `scripts/evaluate.py` | soğuk 14.245 sn; sıcak medyan 4.250 sn | PASS |
 | 38 | Full end-to-end test başarılı | loader → chunk → embed → SQLite → retrieve → LLM → CLI | 12/12 real evaluation + demo dry-run | PASS |
 
 ## Kanıt komutları
@@ -54,4 +54,4 @@ env RUN_REAL_FOUNDRY_TESTS=1 .venv/bin/python -m unittest discover -s tests -p '
 sqlite3 data/knowledge.db 'PRAGMA integrity_check; ...'
 ```
 
-Final sonuç: **38/38 mandatory requirement PASS**.
+Teknik sonuç: **38/38 zorunlu gereksinim PASS**. `PASS*`, çalışma akışının geçtiğini; Türkçe cevap kalitesinin kullanıcı belgeleri eklendikten sonra yeniden inceleneceğini belirtir.

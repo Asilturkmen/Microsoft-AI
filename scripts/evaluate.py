@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the documented evaluation matrix against real local Foundry models."""
+"""Belgelenmiş Türkçe değerlendirme matrisini gerçek yerel modellerle çalıştır."""
 
 from __future__ import annotations
 
@@ -23,25 +23,25 @@ CASES_PATH = PROJECT_ROOT / "tests" / "evaluation_cases.json"
 
 def _evaluate_result(case: dict[str, Any], result: Any) -> tuple[bool, str]:
     if case.get("expected_safe_result"):
-        return bool(result.answer.strip()), "returned a non-empty controlled result"
+        return bool(result.answer.strip()), "boş olmayan kontrollü bir sonuç döndü"
     if case["should_answer"]:
         source_ok = case["expected_source"] in result.sources
         terms = [term.lower() for term in case.get("required_terms_any", [])]
         term_ok = not terms or any(term in result.answer.lower() for term in terms)
         passed = not result.used_fallback and source_ok and term_ok
-        return passed, f"source_ok={source_ok}, term_ok={term_ok}"
+        return passed, f"kaynak_doğru={source_ok}, terim_doğru={term_ok}"
     passed = result.used_fallback and result.answer == UNKNOWN_ANSWER and not result.sources
-    return passed, f"fallback={result.used_fallback}, sources={result.sources}"
+    return passed, f"kontrollü_cevap={result.used_fallback}, kaynaklar={result.sources}"
 
 
 def main() -> int:
     cases: list[dict[str, Any]] = json.loads(CASES_PATH.read_text(encoding="utf-8"))
-    print(f"Evaluation cases: {len(cases)}", flush=True)
+    print(f"Değerlendirme vakası: {len(cases)}", flush=True)
     load_start = time.perf_counter()
     pipeline = RAGPipeline()
     pipeline.load()
     cold_load_seconds = time.perf_counter() - load_start
-    print(f"Cold model load: {cold_load_seconds:.3f}s", flush=True)
+    print(f"Soğuk model yükleme: {cold_load_seconds:.3f} sn", flush=True)
 
     failures = 0
     warm_times: list[float] = []
@@ -55,9 +55,9 @@ def main() -> int:
                 expected = case.get("expected_error")
                 passed = expected == type(error).__name__
                 note = f"{type(error).__name__}: {error}"
-                top_score = "n/a"
+                top_score = "uygulanamaz"
                 sources = []
-                answer = "<error>"
+                answer = "<hata>"
             else:
                 elapsed = time.perf_counter() - start
                 passed, note = _evaluate_result(case, result)
@@ -69,20 +69,20 @@ def main() -> int:
             status = "PASS" if passed else "FAIL"
             failures += int(not passed)
             print(f"\n[{status}] {case['id']} ({elapsed:.3f}s)")
-            print(f"  question: {case['question'] or '<empty>'}")
-            print(f"  top_score: {top_score}")
-            print(f"  sources: {sources}")
-            print(f"  answer: {answer}")
-            print(f"  checks: {note}", flush=True)
+            print(f"  soru: {case['question'] or '<boş>'}")
+            print(f"  en_yüksek_skor: {top_score}")
+            print(f"  kaynaklar: {sources}")
+            print(f"  cevap: {answer}")
+            print(f"  kontroller: {note}", flush=True)
     finally:
         pipeline.close()
 
-    print("\nTiming summary")
-    print(f"  cold_load_seconds: {cold_load_seconds:.3f}")
-    print(f"  warm_query_min_seconds: {min(warm_times):.3f}")
-    print(f"  warm_query_median_seconds: {statistics.median(warm_times):.3f}")
-    print(f"  warm_query_max_seconds: {max(warm_times):.3f}")
-    print(f"Evaluation result: {len(cases) - failures}/{len(cases)} PASS")
+    print("\nSüre özeti")
+    print(f"  soğuk_yükleme_saniye: {cold_load_seconds:.3f}")
+    print(f"  sıcak_sorgu_min_saniye: {min(warm_times):.3f}")
+    print(f"  sıcak_sorgu_medyan_saniye: {statistics.median(warm_times):.3f}")
+    print(f"  sıcak_sorgu_maks_saniye: {max(warm_times):.3f}")
+    print(f"Değerlendirme sonucu: {len(cases) - failures}/{len(cases)} PASS")
     return 1 if failures else 0
 
 

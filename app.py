@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive terminal interface for the fully local RAG assistant."""
+"""Tamamen yerel RAG asistanı için etkileşimli terminal arayüzü."""
 
 from __future__ import annotations
 
@@ -19,15 +19,15 @@ class PipelineProvider(Protocol):
 
 def _show_result(result: AnswerResult, output: Callable[[str], None]) -> None:
     output("")
-    output("Answer:")
+    output("Cevap:")
     output(result.answer)
     output("")
-    output("Sources:")
+    output("Kaynaklar:")
     if result.sources:
         for source in result.sources:
             output(f"- {source}")
     else:
-        output("- No relevant source document")
+        output("- İlgili kaynak belge bulunamadı")
     output("")
 
 
@@ -37,41 +37,41 @@ def run_cli(
     output: Callable[[str], None] = print,
 ) -> int:
     output("=" * 40)
-    output(" Local RAG Study Assistant")
+    output(" Yerel RAG Çalışma Asistanı")
     output("=" * 40)
-    output("Loading local models (no cloud LLM)...")
+    output("Yerel modeller yükleniyor (bulut LLM kullanılmaz)...")
 
     try:
         with pipeline_factory() as pipeline:
-            output("Ready. Ask a question, or type 'exit' to quit.")
+            output("Hazır. Bir soru sorun veya çıkmak için 'çıkış' yazın.")
             while True:
                 try:
                     question = input_fn("\n> ").strip()
                 except EOFError:
-                    output("\nEnd of input received. Exiting.")
+                    output("\nGirdi sona erdi. Çıkılıyor.")
                     break
                 except KeyboardInterrupt:
-                    output("\nInterrupted. Exiting.")
+                    output("\nİşlem kesildi. Çıkılıyor.")
                     break
 
-                if question.lower() in {"exit", "quit", "q"}:
-                    output("Goodbye.")
+                if question.lower() in {"çıkış", "çık", "exit", "quit", "q"}:
+                    output("Görüşmek üzere.")
                     break
                 if not question:
-                    output("Please enter a question, or type 'exit' to quit.")
+                    output("Lütfen bir soru girin veya çıkmak için 'çıkış' yazın.")
                     continue
 
-                output("Processing locally...")
+                output("Soru yerel olarak işleniyor...")
                 try:
                     result = pipeline.answer_query(question)
                 except Exception as error:
-                    output(f"Could not answer that question: {error}")
-                    output("You can try another question.")
+                    output(f"Bu soru cevaplanamadı: {error}")
+                    output("Başka bir soru deneyebilirsiniz.")
                     continue
                 _show_result(result, output)
     except Exception as error:
-        output(f"Application startup failed: {error}")
-        output("If the index is missing, run: .venv/bin/python scripts/ingest.py")
+        output(f"Uygulama başlatılamadı: {error}")
+        output("İndeks eksikse şu komutu çalıştırın: .venv/bin/python scripts/ingest.py")
         return 1
     return 0
 

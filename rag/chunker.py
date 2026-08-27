@@ -1,4 +1,4 @@
-"""Simple paragraph- and Markdown-heading-aware document chunking."""
+"""Paragraf ve Markdown başlıklarını gözeten basit belge parçalama."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def _blocks(text: str) -> list[str]:
 
 
 def _sections(blocks: list[str]) -> list[list[str]]:
-    """Attach each Markdown heading to the paragraphs that follow it."""
+    """Her Markdown başlığını ardından gelen paragraflara bağla."""
     if not any(_HEADING.match(block) for block in blocks):
         return [blocks[index : index + 3] for index in range(0, len(blocks), 3)]
 
@@ -41,9 +41,9 @@ def _sections(blocks: list[str]) -> list[list[str]]:
 
 
 def chunk_document(document: Document, max_chars: int = 1_200) -> list[Chunk]:
-    """Create useful chunks and preserve source plus deterministic chunk indexes."""
+    """Anlamlı parçalar üret; kaynak ve kararlı parça indekslerini koru."""
     if max_chars < 100:
-        raise ValueError("max_chars must be at least 100.")
+        raise ValueError("max_chars en az 100 olmalıdır.")
     blocks = _blocks(document.content)
     if not blocks:
         return []
@@ -68,7 +68,7 @@ def chunk_document(document: Document, max_chars: int = 1_200) -> list[Chunk]:
 
 
 def chunk_documents(documents: list[Document], max_chars: int = 1_200) -> list[Chunk]:
-    """Chunk a collection while keeping per-document indexes."""
+    """Belge başına indeksleri koruyarak bir koleksiyonu parçala."""
     return [
         chunk
         for document in documents

@@ -1,4 +1,4 @@
-"""Local Foundry embedding model lifecycle and vector validation."""
+"""Yerel Foundry embedding modeli yaşam döngüsü ve vektör doğrulaması."""
 
 from __future__ import annotations
 
@@ -10,21 +10,21 @@ from rag.foundry_runtime import get_foundry_manager
 
 
 def validate_embedding(vector: Sequence[float], expected_dimension: int | None = None) -> list[float]:
-    """Return a finite float vector or raise a descriptive error."""
+    """Sonlu bir float vektörü döndür veya açıklayıcı hata üret."""
     if not vector:
-        raise ValueError("Embedding vector is empty.")
+        raise ValueError("Embedding vektörü boş.")
     result = [float(value) for value in vector]
     if not all(math.isfinite(value) for value in result):
-        raise ValueError("Embedding vector contains NaN or infinite values.")
+        raise ValueError("Embedding vektörü NaN veya sonsuz değer içeriyor.")
     if expected_dimension is not None and len(result) != expected_dimension:
         raise ValueError(
-            f"Embedding dimension mismatch: expected {expected_dimension}, got {len(result)}."
+            f"Embedding boyutu uyuşmuyor: beklenen {expected_dimension}, alınan {len(result)}."
         )
     return result
 
 
 class FoundryEmbeddingModel:
-    """Generate document and query embeddings with one local model alias."""
+    """Belge ve sorgu embeddinglerini aynı yerel model alias'ıyla üret."""
 
     def __init__(self, model_alias: str = EMBEDDING_MODEL_ALIAS) -> None:
         self.model_alias = model_alias
@@ -38,7 +38,7 @@ class FoundryEmbeddingModel:
         model = get_foundry_manager().catalog.get_model(self.model_alias)
         if model is None:
             raise RuntimeError(
-                f"Foundry Local catalog does not contain embedding alias: {self.model_alias}"
+                f"Foundry Local kataloğunda embedding alias'ı bulunamadı: {self.model_alias}"
             )
         model.download()
         model.load()
@@ -46,16 +46,16 @@ class FoundryEmbeddingModel:
         self._client = model.get_embedding_client()
 
     def embed_texts(self, texts: Sequence[str]) -> list[list[float]]:
-        """Embed a non-empty batch and enforce dimension consistency."""
+        """Boş olmayan bir grubu embed et ve boyut tutarlılığını zorunlu kıl."""
         if not texts:
             return []
         if any(not text.strip() for text in texts):
-            raise ValueError("Embedding input cannot be empty.")
+            raise ValueError("Embedding girdisi boş olamaz.")
         self.load()
         response = self._client.generate_embeddings(list(texts))
         if len(response.data) != len(texts):
             raise RuntimeError(
-                f"Embedding count mismatch: requested {len(texts)}, received {len(response.data)}."
+                f"Embedding sayısı uyuşmuyor: istenen {len(texts)}, alınan {len(response.data)}."
             )
         vectors: list[list[float]] = []
         for item in response.data:
@@ -66,7 +66,7 @@ class FoundryEmbeddingModel:
         return vectors
 
     def embed_query(self, text: str) -> list[float]:
-        """Embed a query with the exact same model used for documents."""
+        """Sorguyu belgelerde kullanılan modelin aynısıyla embed et."""
         return self.embed_texts([text])[0]
 
     def close(self) -> None:

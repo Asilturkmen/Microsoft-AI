@@ -50,13 +50,13 @@ class DatabaseTests(unittest.TestCase):
     def test_rejects_count_and_dimension_mismatches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             database = KnowledgeDatabase(Path(tmp) / "knowledge.db")
-            with self.assertRaisesRegex(ValueError, "counts"):
+            with self.assertRaisesRegex(ValueError, "sayıları"):
                 database.replace_chunks(
                     [Chunk("a.md", 0, "A")],
                     [],
                     embedding_model_alias="model",
                 )
-            with self.assertRaisesRegex(ValueError, "dimension mismatch"):
+            with self.assertRaisesRegex(ValueError, "boyutu uyuşmuyor"):
                 database.replace_chunks(
                     [Chunk("a.md", 0, "A"), Chunk("a.md", 1, "B")],
                     [[1.0], [1.0, 2.0]],

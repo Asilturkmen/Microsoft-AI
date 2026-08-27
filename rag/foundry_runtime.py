@@ -1,4 +1,4 @@
-"""Shared initialization for the in-process Foundry Local SDK runtime."""
+"""Süreç içi Foundry Local SDK çalışma zamanı için ortak başlatma."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from config import FOUNDRY_APP_NAME
 
 
 def get_foundry_manager() -> FoundryLocalManager:
-    """Return the singleton manager, initializing it once per process."""
+    """Tekil yöneticiyi süreç başına bir kez başlatıp döndür."""
     manager = FoundryLocalManager.instance
     if manager is None:
         FoundryLocalManager.initialize(Configuration(app_name=FOUNDRY_APP_NAME))
         manager = FoundryLocalManager.instance
     if manager is None:
-        raise RuntimeError("Foundry Local SDK initialization failed.")
+        raise RuntimeError("Foundry Local SDK başlatılamadı.")
     return manager

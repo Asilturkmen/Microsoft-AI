@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild the local SQLite knowledge index with Foundry embeddings."""
+"""Yerel SQLite knowledge indeksini Foundry embeddingleriyle yeniden kur."""
 
 from __future__ import annotations
 
@@ -19,16 +19,16 @@ from rag.ingestion import ingest_documents  # noqa: E402
 
 def main() -> int:
     database = KnowledgeDatabase(DATABASE_PATH)
-    print("Rebuilding the local knowledge index...", flush=True)
+    print("Yerel knowledge indeksi yeniden oluşturuluyor...", flush=True)
     with FoundryEmbeddingModel() as model:
         result = ingest_documents(KNOWLEDGE_DIR, database, model)
-    print(f"Documents loaded: {result.document_count}")
-    print(f"Chunks generated: {result.chunk_count}")
-    print(f"Chunks embedded: {result.chunk_count}")
-    print(f"Embedding dimension: {result.embedding_dimension}")
-    print(f"Rows stored in SQLite: {result.stored_count}")
-    print(f"Database: {DATABASE_PATH}")
-    print("Ingestion completed successfully.")
+    print(f"Yüklenen belge: {result.document_count}")
+    print(f"Üretilen parça: {result.chunk_count}")
+    print(f"Embedding oluşturulan parça: {result.chunk_count}")
+    print(f"Embedding boyutu: {result.embedding_dimension}")
+    print(f"SQLite'a kaydedilen satır: {result.stored_count}")
+    print(f"Veritabanı: {DATABASE_PATH}")
+    print("Belge indeksleme başarıyla tamamlandı.")
     return 0
 
 

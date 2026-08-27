@@ -19,13 +19,13 @@ class FakePipeline:
 
     def answer_query(self, question: str) -> AnswerResult:
         self.questions.append(question)
-        return AnswerResult("A grounded answer.", ["oop.md"], [])
+        return AnswerResult("Belgeye dayalı bir cevap.", ["oop.md"], [])
 
 
 class AppTests(unittest.TestCase):
     def test_handles_empty_input_question_and_exit(self) -> None:
         pipeline = FakePipeline()
-        inputs = iter(["", "What is polymorphism?", "exit"])
+        inputs = iter(["", "Polimorfizm nedir?", "çıkış"])
         output: list[str] = []
 
         status = run_cli(
@@ -35,12 +35,12 @@ class AppTests(unittest.TestCase):
         )
 
         self.assertEqual(status, 0)
-        self.assertEqual(pipeline.questions, ["What is polymorphism?"])
+        self.assertEqual(pipeline.questions, ["Polimorfizm nedir?"])
         self.assertTrue(pipeline.closed)
-        self.assertIn("Please enter a question, or type 'exit' to quit.", output)
-        self.assertIn("A grounded answer.", output)
+        self.assertIn("Lütfen bir soru girin veya çıkmak için 'çıkış' yazın.", output)
+        self.assertIn("Belgeye dayalı bir cevap.", output)
         self.assertIn("- oop.md", output)
-        self.assertIn("Goodbye.", output)
+        self.assertIn("Görüşmek üzere.", output)
 
     def test_startup_failure_is_user_friendly(self) -> None:
         def broken_factory() -> FakePipeline:
@@ -50,7 +50,7 @@ class AppTests(unittest.TestCase):
         status = run_cli(pipeline_factory=broken_factory, output=output.append)
 
         self.assertEqual(status, 1)
-        self.assertTrue(any("startup failed" in line for line in output))
+        self.assertTrue(any("başlatılamadı" in line for line in output))
         self.assertTrue(any("scripts/ingest.py" in line for line in output))
 
 

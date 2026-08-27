@@ -50,7 +50,7 @@ class ChunkingTests(unittest.TestCase):
         self.assertEqual([(c.source, c.chunk_index) for c in chunks], [("a.md", 0), ("b.md", 0)])
 
     def test_rejects_unreasonably_small_limit(self) -> None:
-        with self.assertRaisesRegex(ValueError, "at least 100"):
+        with self.assertRaisesRegex(ValueError, "en az 100"):
             chunk_document(Document("a.md", "content"), max_chars=20)
 
 

@@ -1,10 +1,12 @@
-# Final Requirements Audit
+# Son Gereksinim Denetimi
 
 Audit tarihi: 2026-08-27  
-Final status: **READY FOR SUBMISSION**  
+Güncel durum: **TÜRKÇE KNOWLEDGE BEKLENİYOR**
 Mandatory requirements: **38/38 PASS**  
 FAIL: **0**  
 NOT VERIFIED: **0**
+
+> Teknik gereksinimlerin tümü çalışır durumdadır. Uygulama, istemler, terminal çıktıları ve değerlendirme vakaları Türkçeleştirilmiştir. Kullanıcının açık isteği gereği `knowledge/` dosyalarına dokunulmamıştır; mevcut İngilizce örnekler Türkçe belgelerle değiştirildikten sonra ingestion, eşik kalibrasyonu ve manuel dil/doğruluk denetimi yeniden yapılmadan proje Türkçe içerik açısından nihai kabul edilmemelidir.
 
 ## Ortam ve gerçek model kanıtı
 
@@ -35,7 +37,7 @@ NOT VERIFIED: **0**
 | 13 | Semantic/cosine similarity çalışıyor | PASS | numeric tests + real rankings |
 | 14 | En alakalı 2–3 chunk seçiliyor | PASS | configured top-k 3 |
 | 15 | Retrieved context local LLM'e gönderiliyor | PASS | pipeline test + real E2E |
-| 16 | LLM context'e dayanarak cevap üretiyor | PASS | final 5/5 grounded answers |
+| 16 | LLM bağlama dayanarak Türkçe cevap üretiyor | PASS* | 5/5 otomatik kontrol; nihai dil kalitesi Türkçe belgelerden sonra yeniden incelenecek |
 | 17 | Source filename kullanıcıya gösteriliyor | PASS | CLI/demo output |
 | 18 | Bilgi yoksa sistem söylüyor | PASS | 3/3 deterministic fallback |
 | 19 | CLI kullanılabiliyor | PASS | real multi-question PTY |
@@ -56,7 +58,7 @@ NOT VERIFIED: **0**
 | 34 | Gerçek Foundry chat inference testi yapılmış | PASS | local qwen3.5 responses |
 | 35 | Remote OpenAI/Azure key gerekmiyor | PASS | all three env variables NOT_SET |
 | 36 | Cache sonrası cloud LLM gerekmiyor | PASS | native local clients, no remote URL |
-| 37 | Warm query response time raporlanmış | PASS | median 2.213 sn |
+| 37 | Sıcak sorgu yanıt süresi raporlanmış | PASS | medyan 4.250 sn |
 | 38 | Full end-to-end test başarılı | PASS | 12/12 real evaluation |
 
 ## Final çalıştırma sonuçları
@@ -97,10 +99,12 @@ embedding model metadata matches config: True
 - Answerable: **5/5 PASS**
 - Unanswerable: **3/3 PASS**
 - Edge: **4/4 PASS**
-- Cold cached-model load: **14.844 sn**
-- Warm query min/median/max: **0.064 / 2.213 / 2.875 sn**
+- Önbellekteki modellerin soğuk yüklenmesi: **14.245 sn**
+- Sıcak sorgu min/medyan/maks: **0.074 / 4.250 / 12.964 sn**
 
-Answerable final örnekleri doğru source ile normalization, TCP/UDP, polymorphism, virtual memory ve integration tests sorularını cevapladı. Dünya Kupası, tiramisu ve fotosentez soruları exact unknown fallback verdi.
+Cevaplanabilir Türkçe örnekler doğru kaynakla ACID, TCP/UDP, web API yöntemleri, Git dalı/merge ve test seviyeleri sorularını teknik kontrol düzeyinde cevapladı. Dünya Kupası, tiramisu ve fotosentez soruları tam olarak `Bu bilgi sağlanan belgelerde bulunmuyor.` yanıtını verdi.
+
+Manuel dil incelemesinde İngilizce bağlam nedeniyle bazı terimlerin doğal olmayan biçimde çevrildiği görüldü; örneğin bir çalıştırmada “consistency” → “konsantrasyon” ve “commit” → “komite” oldu. Bu nedenle 12/12 otomatik PASS, mevcut İngilizce içerik için nihai Türkçe yazım kalitesi onayı değildir.
 
 ## Offline/cloud dependency audit
 
@@ -133,7 +137,7 @@ Proje `openai` paketini doğrudan import etmez; API key/base URL oluşturmaz. No
 ## README ve teslim tutarlılığı
 
 - README install, model info, venv, dependency, ingestion, app ve test komutları doğrulandı.
-- README, PROJECT_REPORT, EVALUATION_REPORT ve DEMO_GUIDE aynı model alias'larını, 21-row index'i, 0.50 threshold'u ve final timing'i kullanıyor.
+- README, PROJECT_REPORT, EVALUATION_REPORT ve DEMO_GUIDE aynı model alias'larını, 21 satırlık indeksi, geçici 0.50 eşiğini ve son süreleri kullanıyor.
 - Runtime SQLite Git dışında, rebuild komutu açıkça belgeli.
 - Opsiyonel Faz 14 web UI, çekirdek CLI'a yeni dependency/risk eklememek için uygulanmadı; mandatory durumunu etkilemez.
 
@@ -153,9 +157,10 @@ Proje `openai` paketini doğrudan import etmez; API key/base URL oluşturmaz. No
 
 - Markdown/TXT loader; PDF/DOCX yok.
 - Brute-force cosine retrieval küçük knowledge base için uygundur.
-- Knowledge domain değişirse 0.50 threshold yeniden kalibre edilmelidir.
-- Cold model yükleme warm sorgudan uzundur.
+- Belgelerin dili veya alanı değişirse 0.50 eşiği yeniden kalibre edilmelidir.
+- Mevcut knowledge içeriği İngilizcedir; Türkçe içerik doğruluğu henüz nihai denetimden geçmemiştir.
+- Soğuk model yükleme sıcak sorgudan uzundur.
 
 ## Final karar
 
-Tüm mandatory gereksinimler somut code, unit, real integration, SQLite ve gerçek Foundry Local E2E kanıtlarıyla **PASS**. Proje teslim için hazırdır.
+Tüm zorunlu teknik gereksinimler somut kod, birim testi, gerçek entegrasyon, SQLite ve gerçek Foundry Local uçtan uca kanıtlarıyla **PASS**. Türkçe uygulama altyapısı hazırdır; nihai Türkçe içerik onayı için kullanıcının belgeleri eklemesi, indeksin yeniden kurulması ve son içerik denetiminin tekrarlanması gerekir.

@@ -37,11 +37,11 @@ class DocumentLoaderTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "notes.pdf"
             path.write_bytes(b"content")
-            with self.assertRaisesRegex(UnsupportedDocumentError, "Unsupported"):
+            with self.assertRaisesRegex(UnsupportedDocumentError, "Desteklenmeyen"):
                 load_document(path)
 
     def test_missing_directory_has_clear_error(self) -> None:
-        with self.assertRaisesRegex(FileNotFoundError, "Knowledge directory"):
+        with self.assertRaisesRegex(FileNotFoundError, "Knowledge klasörü"):
             load_documents(Path("definitely-missing-directory"))
 
 

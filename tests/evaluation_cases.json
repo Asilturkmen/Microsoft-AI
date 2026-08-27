@@ -1,86 +1,86 @@
 [
   {
-    "id": "answerable_normalization",
-    "category": "answerable",
-    "question": "What is database normalization and why is it used?",
+    "id": "cevaplanabilir_acid",
+    "category": "cevaplanabilir",
+    "question": "ACID transaction özellikleri nelerdir?",
     "should_answer": true,
     "expected_source": "databases.md",
-    "required_terms_any": ["duplicate", "redundant"]
+    "required_terms_any": ["atomik", "tutarlılık", "izolasyon", "dayanıklılık", "kalıcılık"]
   },
   {
-    "id": "answerable_tcp_udp",
-    "category": "answerable",
-    "question": "How are TCP and UDP different?",
+    "id": "cevaplanabilir_tcp_udp",
+    "category": "cevaplanabilir",
+    "question": "TCP ile UDP arasındaki farklar nelerdir?",
     "should_answer": true,
     "expected_source": "networking.md",
-    "required_terms_any": ["reliable", "ordering"]
+    "required_terms_any": ["güvenilir", "sıralı", "teslim"]
   },
   {
-    "id": "answerable_polymorphism",
-    "category": "answerable",
-    "question": "What does polymorphism allow a program to do?",
+    "id": "cevaplanabilir_web_api",
+    "category": "cevaplanabilir",
+    "question": "Bir web API hangi HTTP yöntemlerini kullanır?",
     "should_answer": true,
-    "expected_source": "oop.md",
-    "required_terms_any": ["shared interface", "different object"]
+    "expected_source": "web-development.md",
+    "required_terms_any": ["GET", "POST", "PUT", "PATCH", "DELETE"]
   },
   {
-    "id": "answerable_virtual_memory",
-    "category": "answerable",
-    "question": "What is virtual memory?",
+    "id": "cevaplanabilir_git_dali",
+    "category": "cevaplanabilir",
+    "question": "Git dalı ve merge işlemi nedir?",
     "should_answer": true,
-    "expected_source": "operating-systems.md",
-    "required_terms_any": ["address space", "physical memory"]
+    "expected_source": "git-basics.md",
+    "required_terms_any": ["dal", "commit", "birleştir"]
   },
   {
-    "id": "answerable_integration_tests",
-    "category": "answerable",
-    "question": "What do integration tests verify?",
+    "id": "cevaplanabilir_test_seviyeleri",
+    "category": "cevaplanabilir",
+    "question": "Unit test ile end-to-end test arasındaki fark nedir?",
     "should_answer": true,
     "expected_source": "software-testing.md",
-    "required_terms_any": ["components", "work together"]
+    "required_terms_any": ["birim", "unit", "uçtan uca", "end-to-end"]
   },
   {
-    "id": "unanswerable_world_cup",
-    "category": "unanswerable",
-    "question": "Who won the 2026 FIFA World Cup?",
+    "id": "cevaplanamaz_dunya_kupasi",
+    "category": "cevaplanamaz",
+    "question": "2026 FIFA Dünya Kupası'nı kim kazandı?",
     "should_answer": false
   },
   {
-    "id": "unanswerable_tiramisu",
-    "category": "unanswerable",
-    "question": "What ingredients are needed for tiramisu?",
+    "id": "cevaplanamaz_tiramisu",
+    "category": "cevaplanamaz",
+    "question": "Tiramisu yapmak için hangi malzemeler gerekir?",
     "should_answer": false
   },
   {
-    "id": "unanswerable_photosynthesis",
-    "category": "unanswerable",
-    "question": "How does photosynthesis work in plants?",
+    "id": "cevaplanamaz_fotosentez",
+    "category": "cevaplanamaz",
+    "question": "Bitkilerde fotosentez nasıl gerçekleşir?",
     "should_answer": false
   },
   {
-    "id": "edge_empty",
-    "category": "edge",
+    "id": "sinir_bos",
+    "category": "sinir",
     "question": "",
     "expected_error": "ValueError"
   },
   {
-    "id": "edge_short",
-    "category": "edge",
+    "id": "sinir_kisa",
+    "category": "sinir",
     "question": "TCP?",
     "should_answer": true,
     "expected_source": "networking.md",
-    "required_terms_any": ["TCP", "reliable"]
+    "required_terms_any": ["TCP", "güvenilir"]
   },
   {
-    "id": "edge_general",
-    "category": "edge",
-    "question": "What subjects do these notes cover?",
+    "id": "sinir_genel",
+    "category": "sinir",
+    "question": "Bu notlar hangi konuları kapsıyor?",
     "expected_safe_result": true
   },
   {
-    "id": "edge_cross_document",
-    "category": "edge",
-    "question": "How do a Git branch and a database primary key serve different purposes?",
+    "id": "sinir_coklu_belge",
+    "category": "sinir",
+    "question": "Bir Git dalı ile veritabanı birincil anahtarı hangi farklı amaçlara hizmet eder?",
     "expected_safe_result": true
   }
 ]
