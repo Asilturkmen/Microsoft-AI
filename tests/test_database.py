@@ -29,6 +29,26 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(metadata["embedding_model_alias"], "test-embedding")
         self.assertEqual(metadata["embedding_dimension"], "2")
 
+    def test_lists_documents_with_real_chunk_counts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            database = KnowledgeDatabase(Path(tmp) / "knowledge.db")
+            database.replace_chunks(
+                [
+                    Chunk("a.md", 0, "Alpha"),
+                    Chunk("a.md", 1, "Beta"),
+                    Chunk("b.pdf", 0, "Gamma"),
+                ],
+                [[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]],
+                embedding_model_alias="test-model",
+            )
+
+            documents = database.get_documents()
+
+        self.assertEqual(
+            [(item.source, item.chunk_count) for item in documents],
+            [("a.md", 2), ("b.pdf", 1)],
+        )
+
     def test_rebuild_replaces_rows_instead_of_duplicating(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             database = KnowledgeDatabase(Path(tmp) / "knowledge.db")
@@ -46,6 +66,19 @@ class DatabaseTests(unittest.TestCase):
 
         self.assertEqual(len(stored), 1)
         self.assertEqual(stored[0].source, "new.md")
+
+    def test_clear_removes_chunks_and_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            database = KnowledgeDatabase(Path(tmp) / "knowledge.db")
+            database.replace_chunks(
+                [Chunk("only.md", 0, "İçerik")],
+                [[1.0, 0.0]],
+                embedding_model_alias="model",
+            )
+            database.clear()
+
+            self.assertEqual(database.count_chunks(), 0)
+            self.assertEqual(database.get_metadata(), {})
 
     def test_rejects_count_and_dimension_mismatches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

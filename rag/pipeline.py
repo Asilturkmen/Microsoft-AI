@@ -74,6 +74,11 @@ class RAGPipeline:
         self.retriever = SemanticRetriever(self.database, self.embedding_model)
         self._loaded = False
 
+    @property
+    def is_loaded(self) -> bool:
+        """Her iki yerel model de hazırsa doğru döndür."""
+        return self._loaded
+
     def load(self) -> None:
         if self._loaded:
             return

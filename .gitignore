@@ -14,3 +14,10 @@ data/*
 .DS_Store
 .idea/
 .vscode/
+
+# Frontend build ve test çıktıları.
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/*.tsbuildinfo

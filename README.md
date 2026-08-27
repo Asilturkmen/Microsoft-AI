@@ -56,7 +56,7 @@ Microsoft'un güncel kaynakları:
 - software testing
 - web development
 
-Loader `.md` ve `.txt` dosyalarını UTF-8 olarak okur, boş dosyaları güvenle ele alır ve source filename bilgisini korur. PDF zorunlu minimum kapsamında değildir.
+Loader `.md` ve `.txt` dosyalarını UTF-8 olarak okur; metin katmanı bulunan `.pdf` dosyalarından `pypdf` ile gerçek metin çıkarır. Kaynak dosya adı her üç biçimde de korunur. Taranmış, yalnızca görüntü içeren PDF'ler OCR gerektirdiği için açıklayıcı hatayla reddedilir.
 
 Uygulama arayüzü, prompt ve cevap dili Türkçedir. Mevcut örnek knowledge içerikleri kullanıcı tarafından güvenilir Türkçe belgelerle değiştirilecektir; bu dosyalar otomatik çeviriyle değiştirilmemiştir. Yeni belgeler eklendikten sonra mutlaka şu işlemler yeniden yapılmalıdır:
 
@@ -73,7 +73,7 @@ Belge adları veya konuları değişirse `tests/evaluation_cases.json` içindeki
 
 1. Yerel belgeleri yükler.
 2. Heading/paragraf sınırlarını koruyarak chunk'lara böler.
-3. 21 chunk'ı local `qwen3-embedding-0.6b` modeliyle batch embed eder.
+3. Üretilen parçaları yerel `qwen3-embedding-0.6b` modeliyle toplu olarak embed eder.
 4. Source, chunk index, content ve 1024 boyutlu embedding'i `data/knowledge.db` içine yazar.
 5. Model alias, dimension ve row count metadata'sını doğrular.
 
@@ -129,6 +129,67 @@ Belge indeksleme başarıyla tamamlandı.
 
 ## Uygulamayı çalıştırma
 
+### Production web arayüzü
+
+İlk kurulumda frontend bağımlılıklarını yükleyip production build oluştur:
+
+```bash
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+Ardından backend, gerçek RAG API ve build edilmiş React arayüzünü repo kökünden tek komutla başlat:
+
+```bash
+npm start
+```
+
+Tarayıcıdan [http://127.0.0.1:8765](http://127.0.0.1:8765) adresini aç. Aydınlık ve responsive ürün arayüzü gerçek SQLite belge/parça sayılarını gösterir, aynı `RAGPipeline` üzerinden soru sorar ve retrieval sonucundaki gerçek kaynak dosyası ile parça numaralarını listeler. Sol kütüphanedeki bir belgeye tıklandığında Markdown/TXT içeriği veya PDF'den çıkarılmış gerçek metin bir önizleme panelinde açılır.
+
+Geliştirme sırasında backend ve Vite hot reload sunucusunu birlikte başlatmak için repo kökünde yalnızca:
+
+```bash
+npm run dev
+```
+
+Bu komut Python backend'i `http://127.0.0.1:8765`, Vite arayüzünü `http://127.0.0.1:5173` üzerinde birlikte çalıştırır. `Control+C` her ikisini de kapatır. Python sanal ortam yolu başlangıç betiği tarafından otomatik yönetilir.
+
+### PDF yükleme akışı
+
+Web arayüzündeki **Doküman Ekle** alanı drag-and-drop ve klasik dosya seçimini destekler. Akış sahte başarı üretmez:
+
+1. PDF adı, içerik türü, `%PDF-` başlığı ve 20 MB sınırı doğrulanır.
+2. Dosya çakışmaya karşı atomik biçimde `knowledge/` içine alınır.
+3. `pypdf` bütün sayfalardan metin çıkarır.
+4. Koleksiyon mevcut heading/paragraf-aware chunker ile yeniden parçalanır.
+5. Bütün parçalar gerçek Foundry Local embedding modeliyle embed edilir.
+6. SQLite indeksi transaction içinde yenilenir.
+7. Yüklenen PDF sonraki retrieval ve chat sorgularında gerçek kaynak olarak kullanılabilir.
+
+UI aktarım sırasında gerçek upload yüzdesini; backend işlemi sırasında metin çıkarma, parçalama, embedding ve kayıt aşamalarını gösterir. İşlem başarısızsa yeni PDF kaldırılır ve atomik SQLite rebuild sayesinde önceki indeks korunur. Aynı isimli dosya üzerine yazılmaz.
+
+### Belge görüntüleme ve silme
+
+Sol paneldeki her belge seçilebilir. Önizleme; gerçek dosya adını, türünü, parça sayısını, karakter sayısını ve çıkarılmış metni gösterir. **Belgeyi Sil** işlemi ikinci bir kullanıcı onayı ister. Onaydan sonra dosya knowledge koleksiyonundan çıkarılır ve kalan belgeler Foundry Local embedding modeliyle yeniden indekslenir; böylece silinen içerik sonraki sorularda retrieval sonucu olamaz. Yeniden indeksleme hata verirse dosya geri konur. Son belge silinirse SQLite indeksi güvenli biçimde boşaltılır.
+
+### Web API
+
+| Endpoint | İşlev |
+|---|---|
+| `GET /api/health` | Yerel indeks ve gerçek model yaşam döngüsü durumu |
+| `GET /api/documents` | SQLite kaynaklı belge ve parça sayıları |
+| `GET /api/documents/{filename}` | Belgenin çıkarılmış gerçek metnini ve metadata'sını döndürür |
+| `DELETE /api/documents/{filename}` | Onaylanmış belgeyi siler ve kalan koleksiyonu yeniden indeksler |
+| `POST /api/chat` | Ortak çekirdek RAG pipeline üzerinden cevap ve kaynaklar |
+| `POST /api/documents` | PDF yükleme işlemini başlatır |
+| `GET /api/documents/jobs/{id}` | Gerçek PDF ingestion aşamasını döndürür |
+
+### Terminal arayüzü
+
 ```bash
 python app.py
 ```
@@ -180,9 +241,19 @@ python scripts/smoke_embeddings.py
 python scripts/smoke_retrieval.py
 python scripts/smoke_rag.py
 python scripts/smoke_unknown.py
+python scripts/smoke_pdf_upload.py /path/to/metin-katmanli-test.pdf
 ```
 
-Son doğrulanan sonuçlar `EVALUATION_REPORT.md` içindedir: 24 birim testi PASS, 2 gerçek entegrasyon testi PASS ve Türkçe 12/12 değerlendirme vakası PASS. Soğuk model yükleme 14.245 sn; sıcak sorgu medyanı 4.250 sn olarak ölçüldü. Bu otomatik sonuçlar Türkçe çalışma akışını doğrular; mevcut belgeler İngilizce olduğu için cevap akıcılığına ilişkin nihai onay, kullanıcı Türkçe belgeleri ekledikten sonra verilecektir.
+Frontend test ve build doğrulaması:
+
+```bash
+cd frontend
+npm test
+npm run build
+npm run test:e2e
+```
+
+Son doğrulanan çekirdek sonuçlar `EVALUATION_REPORT.md` içindedir: 2 gerçek entegrasyon testi PASS ve Türkçe 12/12 değerlendirme vakası PASS. Güncel hızlı suite belge görüntüleme/silme testleriyle birlikte 38 testten 36 PASS + 2 opt-in SKIP; frontend component suite 5/5 PASS'tir. Soğuk model yükleme 14.245 sn; sıcak sorgu medyanı 4.250 sn olarak ölçüldü. Bu otomatik sonuçlar Türkçe çalışma akışını doğrular; mevcut belgeler İngilizce olduğu için cevap akıcılığına ilişkin nihai onay, kullanıcı Türkçe belgeleri ekledikten sonra verilecektir.
 
 ## Local/offline davranış
 
@@ -199,32 +270,36 @@ SDK'nın transitive dependency olarak Python `openai` paketini kurması cloud ku
 ## Proje yapısı
 
 ```text
-app.py                    terminal UI
+app.py                    terminal arayüzü
+web_app.py                FastAPI + production frontend giriş noktası
+web_api/                  health, belge, chat ve PDF upload API/servis katmanı
 config.py                 model, path, top-k ve threshold ayarları
 rag/                      loader, chunker, Foundry modelleri, SQLite, retrieval, pipeline
 scripts/ingest.py         reproducible knowledge-index rebuild
 scripts/evaluate.py       gerçek evaluation ve timing
-knowledge/                yedi local Markdown dokümanı
+scripts/smoke_pdf_upload.py geçici DB ile gerçek PDF uçtan uca doğrulaması
+frontend/                 React, TypeScript, Tailwind ve Playwright UI
+knowledge/                Markdown/TXT/PDF yerel belgeleri
 tests/                    unit, opt-in integration ve evaluation vakaları
 data/                     runtime SQLite (Git dışında)
 ```
 
 ## Sınırlamalar
 
-- Yalnızca Markdown ve TXT desteklenir.
+- PDF desteği metin katmanı bulunan dosyalar içindir; OCR uygulanmaz.
 - Brute-force cosine search küçük knowledge base için tasarlanmıştır.
 - Threshold, özellikle knowledge belgelerinin dili veya içeriği değişirse yeniden kalibre edilmelidir.
 - Model çıktısı generatif olduğu için küçük ifade farklılıkları olabilir.
 - Cold model yükleme 8 GB cihazda warm sorgulardan daha uzundur.
-- CLI zorunlu minimum UI'dır; web UI çekirdek teslim için eklenmemiştir.
+- Upload işleri süreç içinde izlenir; sunucu yeniden başlatılırsa geçmiş job durumları korunmaz, ancak tamamlanmış PDF ve SQLite indeksi kalıcıdır.
 
 ## Gelecekteki geliştirmeler
 
-- PDF ve DOCX loader
+- Taranmış PDF'ler için opsiyonel yerel OCR ve DOCX loader
 - Büyük koleksiyonlar için local vector index
 - Chunk/threshold calibration yardımcı aracı
 - Cevap içinde chunk seviyesinde tıklanabilir citation
-- Çekirdek pipeline'ı değiştirmeyen opsiyonel local web UI
+- Uzun koleksiyonlar için kalıcı job kuyruğu ve incremental ingestion
 
 ## Diğer teslim dosyaları
 

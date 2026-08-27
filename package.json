@@ -1,0 +1,12 @@
+{
+  "name": "yerel-rag-assistant",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/start.mjs",
+    "build": "npm --prefix frontend run build",
+    "test:frontend": "npm --prefix frontend test",
+    "test:e2e": "npm --prefix frontend run test:e2e"
+  }
+}

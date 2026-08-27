@@ -5,7 +5,7 @@ Son güncelleme: 2026-08-27 (Asia/Famagusta)
 ## Genel durum
 
 - Çalışma modu: AUTOPILOT
-- Aktif durum: Türkçe knowledge belgeleri bekleniyor
+- Aktif durum: Production web arayüzü tamamlandı; Türkçe knowledge belgeleri bekleniyor
 - Zorunlu fazlar: 14/14 tamamlandı (Faz 0–13)
 - Teknik denetim: **PASS**
 - Nihai Türkçe içerik denetimi: **BEKLEMEDE — kullanıcı belgeleri ekledikten sonra**
@@ -83,7 +83,8 @@ Python, Git, Foundry Local CLI/runtime ve kullanılabilir chat/embedding modelle
 | 11 | PASS | Credential/endpoint, SQLite, SDK local interop, compile ve gerçek E2E audit geçti. |
 | 12 | PASS | README ve PROJECT_REPORT tamamlandı; belgelenen komutlar doğrulandı. |
 | 13 | PASS | Demo guide ve tek CLI oturumunda üç soruluk gerçek dry-run doğrulandı. |
-| 14 (opsiyonel) | SKIPPED | Yeni UI dependency/risk eklememek için çekirdek CLI korundu. |
+| 14 | PASS | React/TypeScript/Tailwind web ürünü, gerçek FastAPI entegrasyonu ve PDF ingestion tamamlandı. |
+| 15 | PASS | Aydınlık sunum arayüzü, gerçek belge önizleme ve güvenli silme/re-index akışı tamamlandı. |
 | Final audit | PASS | 38/38 mandatory requirement somut kanıtla geçti. |
 
 ## Faz 1 — Proje İskeleti ve Foundry Local Smoke Test
@@ -241,11 +242,35 @@ Durum: **PASS**
   - tiramisu → deterministik unknown cevap + source yok
   - `exit` → code 0 ve modeller temiz kapanışta unload
 
-## Opsiyonel Faz 14 — Web UI
+## Faz 14 — Production Web UI ve PDF
 
-Durum: **SKIPPED (opsiyonel)**
+Durum: **PASS**
 
-Zorunlu CLI eksiksiz çalışıyor. Yeni web framework dependency'si, ek startup yüzeyi ve 8 GB cihazda test yükü getirmenin çekirdek teslimi gereksiz risklendireceği değerlendirildi. Master plan Faz 14'ü yalnızca çekirdeği destabilize etmeden eklenebiliyorsa önerdiği için bu teslimde basit ve doğrulanmış CLI korundu.
+- React 19, TypeScript, Tailwind CSS 4, Lucide ve güvenli Markdown rendering ile responsive ürün arayüzü geliştirildi.
+- FastAPI katmanı mevcut `RAGPipeline` örneğini paylaşır; RAG mantığı frontend'e veya ayrı bir backend akışına kopyalanmadı.
+- `GET /api/health`, `GET /api/documents`, `POST /api/chat`, `POST /api/documents` ve upload job status endpointleri eklendi.
+- Belge ve parça sayıları doğrudan SQLite'tan; model durumu gerçek pipeline yaşam döngüsünden; kaynaklar gerçek retrieval sonucundan gelir.
+- PDF loader `pypdf` ile metin çıkarır. Upload; doğrulama → çıkarma → chunking → gerçek local embedding → atomik SQLite rebuild → retrieval akışını tamamlar.
+- Aynı adlı dosya üzerine yazma, path traversal, sahte PDF başlığı, 20 MB üstü dosya ve metinsiz/taranmış PDF güvenli biçimde reddedilir.
+- Upload ve chat aynı model kaynakları üzerinde süreç-içi kilitle seri hale getirilmiştir; CLI aynı çekirdek hattı kullanmaya devam eder.
+- Frontend: 4/4 component testi PASS; production TypeScript/Vite build PASS; npm audit 0 vulnerability.
+- Chromium E2E: 1440×900 masaüstü gerçek chat/source/fallback PASS; 390×844 mobil drawer ve yatay taşma kontrolü PASS; console/page error yok.
+- Geçici knowledge/SQLite ile gerçek PDF smoke: upload completed, 1 PDF parçası indekslendi, `MAVI-47` yanıtı 0.711427 skor ve PDF source ile döndü.
+- Projenin asıl `knowledge/` klasörüne test belgesi eklenmedi ve mevcut içerik değiştirilmedi.
+
+## Faz 15 — Sunum UI, Belge Önizleme ve Silme
+
+Durum: **PASS**
+
+- Koyu tema yerine açık, sıcak-nötr zemin; lacivert bilgi hiyerarşisi; mavi aksiyon rengi ve beyaz içerik kartlarından oluşan sunum odaklı tasarım sistemi uygulandı.
+- Sol panel gerçek bir **Bilgi Kütüphanesi** haline getirildi; her belge klavye ile erişilebilir bir düğme olarak açılır.
+- `GET /api/documents/{filename}` Markdown/TXT metnini veya PDF'den gerçekten çıkarılan metni dosya türü, parça ve karakter sayısıyla döndürür.
+- Sağdan açılan responsive önizleme paneli gerçek belge içeriğini gösterir; sahte özet veya placeholder kullanmaz.
+- `DELETE /api/documents/{filename}` ikinci UI onayından sonra dosyayı geçici olarak ayırır, kalan koleksiyonu gerçek Foundry embedding ile yeniden indeksler ve başarılı olunca dosyayı kaldırır.
+- Re-index başarısızsa belge geri yüklenir; son belge silinirse SQLite chunk/metadata tabloları güvenli ve atomik biçimde boşaltılır.
+- Path traversal ve işlemdeki belgeyi silme reddedilir. Kullanıcının gerçek belgeleri otomatik testte silinmedi.
+- Hızlı backend suite: 38 test = 36 PASS + 2 opt-in SKIP. Frontend component suite: 5/5 PASS. Production build: PASS.
+- Chromium: belge önizleme + gerçek chat/source/fallback masaüstünde PASS; mobil drawer/overflow ayrı temiz oturumda PASS; açık tema 1440×900 görsel kontrolü PASS; ciddi console/page error yok.
 
 ## Son Gereksinim Denetimi
 

@@ -21,6 +21,12 @@ class StoredChunk:
     embedding: list[float]
 
 
+@dataclass(frozen=True, slots=True)
+class StoredDocument:
+    source: str
+    chunk_count: int
+
+
 class KnowledgeDatabase:
     def __init__(self, path: Path) -> None:
         self.path = Path(path)
@@ -138,3 +144,27 @@ class KnowledgeDatabase:
                 )
             )
         return chunks
+
+    def get_documents(self) -> list[StoredDocument]:
+        """İndekslenmiş belgeleri gerçek parça sayılarıyla döndür."""
+        self.initialize()
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT source, COUNT(*) AS chunk_count
+                FROM chunks
+                GROUP BY source
+                ORDER BY source COLLATE NOCASE
+                """
+            ).fetchall()
+        return [
+            StoredDocument(source=str(row["source"]), chunk_count=int(row["chunk_count"]))
+            for row in rows
+        ]
+
+    def clear(self) -> None:
+        """Son belge silindiğinde indeksi atomik olarak boşalt."""
+        self.initialize()
+        with self.connect() as connection:
+            connection.execute("DELETE FROM chunks")
+            connection.execute("DELETE FROM metadata")

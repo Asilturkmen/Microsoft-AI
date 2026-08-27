@@ -85,3 +85,14 @@ Bu kusurlar uygulama arayüzünden değil, geçici İngilizce kaynak metinlerin 
 - Brute-force cosine retrieval küçük koleksiyon için uygundur; çok büyük koleksiyonlarda vector index gerekebilir.
 - Yerel model çıktısı generatif olduğundan kelime seçimi çalıştırmalar arasında küçük farklılık gösterebilir.
 - 8 GB cihazda soğuk model yükleme sıcak sorgudan belirgin biçimde uzundur.
+
+## Web UI ve PDF doğrulama eki
+
+- Backend: 34 test; 32 PASS, 2 gerçek-model testi normal suite içinde opt-in SKIP
+- Frontend: 4/4 component testi PASS
+- TypeScript + Vite production build: PASS
+- Chromium: masaüstü chat/source/fallback ve mobil responsive/overflow testleri PASS
+- Console/page error: 0
+- Gerçek PDF: upload → metin çıkarma → 1 parça → Foundry embedding → geçici SQLite → retrieval → `MAVI-47` cevabı ve PDF source PASS
+
+PDF smoke testi geçici dizinde çalıştırıldığı için projenin gerçek `knowledge/` içeriğini veya `data/knowledge.db` indeksini değiştirmedi.

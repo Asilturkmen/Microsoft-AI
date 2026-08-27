@@ -5,16 +5,17 @@
 İlk model indirmeleri daha önce tamamlanmış olmalıdır. Demo öncesinde index'i yeniden kurup hızlı kontrol yap:
 
 ```bash
-source .venv/bin/activate
-python scripts/ingest.py
-python app.py
+npm run build
+npm start
 ```
+
+Tarayıcıda `http://127.0.0.1:8765` adresini aç. Geliştirme sırasında backend ve frontend'i birlikte açmak için yalnızca `npm run dev` kullanılabilir. CLI demosu ayrıca `.venv/bin/python app.py` ile aynı çekirdek pipeline üzerinde yapılabilir.
 
 ## 1–2 dakikalık anlatım metni
 
-“Bu proje, tamamen bilgisayarımda çalışan bir Local RAG Study Assistant. Knowledge base içinde yedi kısa yazılım mühendisliği belgesi var. RAG kullanmamın nedeni, modelin genel bilgisinden cevap vermesi yerine önce bu belgelerden kanıt bulmasını sağlamak.
+“Bu proje, tamamen bilgisayarımda çalışan bir Local RAG Study Assistant. Bilgi Kütüphanesi PDF, Markdown ve metin belgelerini destekliyor; arayüz her an gerçek belge ve parça sayısını gösteriyor. RAG kullanmamın nedeni, modelin genel bilgisinden cevap vermesi yerine önce bu belgelerden kanıt bulmasını sağlamak.
 
-Ingestion sırasında belgeleri başlık ve paragraf sınırlarına göre 21 parçaya ayırıyorum. Microsoft Foundry Local üzerindeki embedding modeli her parçayı 1024 sayılık bir anlam vektörüne dönüştürüyor ve içerik, source adı, chunk index ile birlikte SQLite'a kaydediyorum.
+Ingestion sırasında belgeleri başlık ve paragraf sınırlarına göre parçalara ayırıyorum. Microsoft Foundry Local üzerindeki embedding modeli her parçayı 1024 sayılık bir anlam vektörüne dönüştürüyor ve içerik, source adı, chunk index ile birlikte SQLite'a kaydediyorum.
 
 Kullanıcı soru sorunca aynı local embedding modeli soruyu vektöre dönüştürüyor. Cosine similarity en alakalı üç parçayı seçiyor. En yüksek skor 0.50'nin altındaysa sistem bilgi uydurmadan doğrudan belgelerde cevap olmadığını söylüyor. Yeterli kanıt varsa sadece bulunan context, Foundry Local üzerinde cihazda çalışan chat modeline veriliyor. Cevap ve source dosya adları terminalde gösteriliyor. Normal inference için OpenAI veya Azure API anahtarı gerekmiyor.”
 
@@ -84,13 +85,17 @@ Kısa anlatım: “Bu, modelin genel yemek bilgisini kullanıp cevap uydurmadı�
 
 ## Mimariyi gösterme sırası
 
-1. `knowledge/` içindeki yedi dokümanı göster.
-2. `scripts/ingest.py` ile 7 → 21 → SQLite çıktısını göster.
+1. Açık temalı ana ekranda Bilgi Kütüphanesi'ndeki gerçek doküman ve parça sayılarını göster.
+2. Bir belgeye tıklayıp gerçek metin önizlemesini, dosya türünü ve karakter/parça bilgisini göster.
 3. `config.py` içindeki iki model alias'ını, top-k 3 ve threshold 0.50'yi göster.
 4. `rag/retrieval.py` içindeki cosine sıralamasını göster.
 5. `rag/pipeline.py` içindeki threshold ve grounded prompt'u göster.
-6. `app.py` üzerinden üç canlı demo sorusunu sırayla sor.
-7. `EVALUATION_REPORT.md` içindeki 12/12 PASS ve timing tablosunu göster.
+6. Web UI'da gerçek belge/parça listesini ve Foundry Local durumunu göster.
+7. Web UI üzerinden üç canlı demo sorusunu sırayla sor ve kaynak parçalarını aç.
+8. **Doküman Ekle** penceresinde drag-and-drop, klasik dosya seçimi ve gerçek ingestion aşamalarını göster.
+9. Silmeyi göstermek istersen yalnızca demo için eklediğin geçici PDF'yi aç; **Belgeyi Sil** ve ikinci onay ekranını göster. Onaydan sonra kalan koleksiyonun yeniden indekslendiğini açıkla.
+10. CLI'ın korunmasını göstermek gerekirse `app.py` üzerinden kısa bir soru sor.
+11. `EVALUATION_REPORT.md` içindeki RAG, web ve PDF test kanıtlarını göster.
 
 ## Muhtemel değerlendirici soruları
 
@@ -122,7 +127,7 @@ Hayır. SQLite index transaction içinde rebuild edilir. İki gerçek çalışt�
 Son Türkçe değerlendirmede önbellekteki modellerin soğuk yükleme süresi 14.245 sn, sıcak sorgu medyanı 4.250 sn, maksimumu 12.964 sn idi. Bu ölçümler mevcut İngilizce örnek belgelerle alınmıştır.
 
 **Mevcut sınırlamalar?**  
-Markdown/TXT desteği, küçük koleksiyon için brute-force retrieval ve alan değişince eşik kalibrasyonunun yenilenmesi gerekir. Ayrıca mevcut örnek belgeler İngilizcedir; güvenilir Türkçe belgeler eklendikten sonra cevap akıcılığı ve doğruluğu yeniden denetlenmelidir.
+Markdown/TXT ve metin katmanlı PDF desteği vardır; taranmış PDF'ler için OCR ve DOCX henüz yoktur. Retrieval küçük koleksiyonda brute-force çalışır ve alan değişince eşik yeniden kalibre edilmelidir. Mevcut örnek belgeler İngilizcedir; güvenilir Türkçe belgeler eklendikten sonra cevap akıcılığı ve doğruluğu yeniden denetlenmelidir.
 
 ## Demo kapanış cümlesi
 

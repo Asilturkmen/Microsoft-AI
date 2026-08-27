@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Callable, Protocol, Sequence
 
 from rag.chunker import chunk_documents
 from rag.database import KnowledgeDatabase
@@ -29,14 +29,20 @@ def ingest_documents(
     knowledge_dir: Path,
     database: KnowledgeDatabase,
     embedding_model: EmbeddingProvider,
+    progress: Callable[[str], None] | None = None,
 ) -> IngestionResult:
+    notify = progress or (lambda _stage: None)
+    notify("extracting")
     documents = load_documents(knowledge_dir)
     if not documents:
         raise RuntimeError(f"Desteklenen belge bulunamadı: {knowledge_dir}")
+    notify("processing")
     chunks = chunk_documents(documents)
     if not chunks:
         raise RuntimeError("Knowledge belgeleri boş olmayan hiçbir parça üretmedi.")
+    notify("embedding")
     embeddings = embedding_model.embed_texts([chunk.content for chunk in chunks])
+    notify("storing")
     database.replace_chunks(
         chunks,
         embeddings,

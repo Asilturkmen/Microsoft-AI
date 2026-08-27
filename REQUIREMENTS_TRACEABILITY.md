@@ -55,3 +55,24 @@ sqlite3 data/knowledge.db 'PRAGMA integrity_check; ...'
 ```
 
 Teknik sonuç: **38/38 zorunlu gereksinim PASS**. `PASS*`, çalışma akışının geçtiğini; Türkçe cevap kalitesinin kullanıcı belgeleri eklendikten sonra yeniden inceleneceğini belirtir.
+
+## Production Web UI ve PDF gereksinimleri
+
+| # | Gereksinim | Uygulama kanıtı | Çalışma zamanı kanıtı | Durum |
+|---:|---|---|---|---|
+| 39 | Modern React/TypeScript/Tailwind UI | `frontend/src/`, component yapısı | production Vite build | PASS |
+| 40 | Gerçek knowledge listesi ve parça sayıları | `GET /api/documents`, `KnowledgeDatabase.get_documents` | 7 belge / 21 parça | PASS |
+| 41 | Web chat ortak RAG pipeline kullanıyor | `RAGWebService.answer` | gerçek HTTP TCP/UDP cevabı | PASS |
+| 42 | Kaynak dosya ve parça gösteriliyor | `/api/chat`, `MessageList` | `networking.md`, gerçek parça numaraları | PASS |
+| 43 | Bilinmeyen cevap normal chat davranışı | `used_fallback`, assistant message | tam Türkçe fallback, kaynak yok | PASS |
+| 44 | Gerçek PDF ingestion | `pypdf`, `ingest_documents`, upload endpoint | geçici PDF E2E, skor 0.711427 | PASS |
+| 45 | Gerçek upload aşamaları | ingestion progress callback + job endpoint | extracting/processing/embedding/storing/completed | PASS |
+| 46 | Upload güvenliği | isim/type/magic/size/exclusive-create kontrolleri | API negatif testleri | PASS |
+| 47 | Responsive ve erişilebilir UI | drawer, semantic HTML, focus/reduced-motion | Chromium 1440×900 ve 390×844 | PASS |
+| 48 | Console ve yatay taşma temiz | Playwright listeners ve ölçüm | 0 error; mobil overflow yok | PASS |
+| 49 | CLI korunuyor | değişmeyen `app.py` → `RAGPipeline` | CLI ve unit regresyon | PASS |
+| 50 | Tek komut production sunumu | `web_app.py`, FastAPI `StaticFiles` | `/` 200 production HTML | PASS |
+| 51 | Aydınlık ve modern sunum UI | açık tasarım sistemi, responsive kartlar | Chromium 1440×900 görsel/E2E kontrolü | PASS |
+| 52 | Belge içeriği görüntüleme | `GET /api/documents/{filename}`, `DocumentViewer` | gerçek `databases.md` içerik E2E + component/API testleri | PASS |
+| 53 | UI'dan güvenli belge silme | `DELETE /api/documents/{filename}`, çift onay | servis, API ve component testleri | PASS |
+| 54 | Silme sonrası retrieval tutarlılığı | tombstone + gerçek re-index + rollback/clear | geçici iki/tek belgeli servis testleri | PASS |

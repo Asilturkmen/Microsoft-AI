@@ -139,7 +139,35 @@ Proje `openai` paketini doğrudan import etmez; API key/base URL oluşturmaz. No
 - README install, model info, venv, dependency, ingestion, app ve test komutları doğrulandı.
 - README, PROJECT_REPORT, EVALUATION_REPORT ve DEMO_GUIDE aynı model alias'larını, 21 satırlık indeksi, geçici 0.50 eşiğini ve son süreleri kullanıyor.
 - Runtime SQLite Git dışında, rebuild komutu açıkça belgeli.
-- Opsiyonel Faz 14 web UI, çekirdek CLI'a yeni dependency/risk eklememek için uygulanmadı; mandatory durumunu etkilemez.
+- Faz 14 web UI, çekirdek pipeline değiştirilmeden React/TypeScript/Tailwind ve minimum FastAPI katmanıyla tamamlandı; CLI regresyon testleri geçmeye devam eder.
+
+## Web UI ve PDF ek denetimi
+
+- Production frontend build: **PASS** (`tsc -b && vite build`)
+- Frontend component testleri: **4/4 PASS**
+- Backend toplam: **34 test, 32 PASS + 2 opt-in SKIP**
+- Gerçek SQLite belge endpointi: **7 belge / 21 parça PASS**
+- Gerçek HTTP chat: TCP/UDP cevabı + `networking.md` kaynak parçaları **PASS**
+- Gerçek HTTP bilinmeyen cevap: tam fallback + boş kaynak listesi **PASS**
+- Gerçek geçici PDF E2E: upload → metin → chunk → Foundry embedding → SQLite → retrieval → chat **PASS**
+- PDF test cevabı: `MAVI-47`; kaynak `yerel-rag-deneme.pdf`, parça 1, skor 0.711427
+- Chromium masaüstü 1440×900: chat, kaynak açılımı, fallback, production static build **PASS**
+- Chromium mobil 390×844: drawer, touch hedefleri, yatay taşma **PASS**
+- Browser console/page errors: **0**
+- `knowledge/` test sırasında değiştirilmedi: **PASS**
+
+## Sunum UI ve belge yönetimi ek denetimi
+
+- Koyu temanın yerine açık, yüksek kontrastlı ve responsive ürün tasarımı: **PASS**
+- Gerçek Markdown/TXT/PDF metnini açan belge önizleme: **PASS**
+- İkinci onay isteyen UI silme akışı: **PASS**
+- Dosya silme + kalan belgeleri gerçek embedding ile re-index: **PASS**
+- Son belge için güvenli SQLite clear: **PASS**
+- Path traversal ve işlem devam ederken silme koruması: **PASS**
+- Güncel backend suite: **38 test, 36 PASS + 2 opt-in SKIP**
+- Güncel frontend component suite: **5/5 PASS**
+- Production TypeScript/Vite build: **PASS**
+- Chromium açık tema, belge önizleme, chat/source/fallback ve mobil taşma kontrolleri: **PASS**
 
 ## Teslim dosyaları
 
@@ -151,11 +179,12 @@ Proje `openai` paketini doğrudan import etmez; API key/base URL oluşturmaz. No
 - `REQUIREMENTS_TRACEABILITY.md`
 - `FINAL_AUDIT.md`
 - `app.py`, `requirements.txt`
+- `web_app.py`, `web_api/`, `frontend/`
 - `rag/`, `scripts/`, `knowledge/`, `tests/`, `data/`
 
 ## Bilinen sınırlamalar
 
-- Markdown/TXT loader; PDF/DOCX yok.
+- Markdown/TXT ve metin katmanlı PDF loader; OCR ve DOCX yok.
 - Brute-force cosine retrieval küçük knowledge base için uygundur.
 - Belgelerin dili veya alanı değişirse 0.50 eşiği yeniden kalibre edilmelidir.
 - Mevcut knowledge içeriği İngilizcedir; Türkçe içerik doğruluğu henüz nihai denetimden geçmemiştir.
@@ -163,4 +192,4 @@ Proje `openai` paketini doğrudan import etmez; API key/base URL oluşturmaz. No
 
 ## Final karar
 
-Tüm zorunlu teknik gereksinimler somut kod, birim testi, gerçek entegrasyon, SQLite ve gerçek Foundry Local uçtan uca kanıtlarıyla **PASS**. Türkçe uygulama altyapısı hazırdır; nihai Türkçe içerik onayı için kullanıcının belgeleri eklemesi, indeksin yeniden kurulması ve son içerik denetiminin tekrarlanması gerekir.
+Tüm zorunlu teknik gereksinimler ve yeni web/PDF ürün gereksinimleri somut kod, birim testi, gerçek entegrasyon, Chromium, SQLite ve gerçek Foundry Local uçtan uca kanıtlarıyla **PASS**. Türkçe uygulama altyapısı hazırdır; nihai Türkçe içerik onayı için kullanıcının belgeleri eklemesi, indeksin yeniden kurulması ve son içerik denetiminin tekrarlanması gerekir.

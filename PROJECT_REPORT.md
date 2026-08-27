@@ -17,6 +17,8 @@ Yerel ders notları genel bir modelin eğitim verisinde bulunmayabilir. Belgeler
 - **Brute-force cosine retrieval:** 21 chunk için anlaşılır ve yeterince hızlıdır; varsayılan top-k 3'tür.
 - **0.50 unknown threshold:** Kör bir sabit yerine gerçek answerable/unanswerable score dağılımındaki boşluktan seçildi.
 - **CLI:** Programın minimum arayüz gereksinimini düşük riskle karşılar ve aynı pipeline ile ardışık soru destekler.
+- **Web ürünü:** React/TypeScript/Tailwind arayüzü, FastAPI üzerinden aynı çekirdek pipeline'ı kullanır; responsive chat, gerçek kaynaklar, runtime durumu ve PDF upload sağlar.
+- **Gerçek PDF ingestion:** Metin katmanlı PDF, `pypdf` ile okunur; mevcut chunker, Foundry embedding modeli ve atomik SQLite rebuild akışına dahil edilir.
 - **Model lifecycle:** İki model uygulama başlangıcında bir kez yüklenir ve kapanışta unload edilir.
 
 ## Doğrulanan sonuçlar
@@ -29,6 +31,9 @@ Yerel ders notları genel bir modelin eğitim verisinde bulunmayabilir. Belgeler
 - Soğuk yükleme: 14.245 sn
 - Sıcak sorgu: min 0.074, medyan 4.250, maks 12.964 sn
 - Remote LLM key veya endpoint: yok
+- Frontend component testleri: 4/4 PASS; production build PASS
+- Chromium UI: masaüstü ve mobil PASS; ciddi console/page error yok
+- Gerçek geçici PDF E2E: upload → 1 parça → embedding → SQLite → retrieval → doğru cevap/source PASS
 
 Bu testler Türkçeleştirilmiş uygulama akışını doğrular. `knowledge/` dosyaları kullanıcının isteğiyle değiştirilmemiştir ve mevcut örnekler İngilizcedir. Dolayısıyla Türkçe cevapların nihai doğruluk ve akıcılık denetimi, kullanıcı güvenilir Türkçe belgeleri ekledikten sonra yeniden yapılacaktır.
 
@@ -44,4 +49,4 @@ Bu testler Türkçeleştirilmiş uygulama akışını doğrular. `knowledge/` do
 
 ## Sınırlamalar ve gelecek çalışma
 
-Mevcut yükleyici Markdown/TXT ile sınırlıdır; retrieval küçük veri setinde brute-force çalışır. Alan veya belge dili değişince eşik yeniden ölçülmelidir. Mevcut İngilizce örnek içerik küçük yerel modelde zaman zaman doğal olmayan Türkçe terimlere neden olmaktadır. Gelecekte PDF/DOCX, büyük koleksiyonlar için yerel vektör indeksi, parça seviyesinde kaynak gösterimi ve opsiyonel web arayüzü eklenebilir.
+Mevcut yükleyici Markdown/TXT ve metin katmanlı PDF destekler; taranmış PDF için OCR, DOCX desteği ve büyük koleksiyonlar için vektör indeksi henüz yoktur. Alan veya belge dili değişince eşik yeniden ölçülmelidir. Mevcut İngilizce örnek içerik küçük yerel modelde zaman zaman doğal olmayan Türkçe terimlere neden olmaktadır. Web upload işleri süreç içi izlenir; çok kullanıcılı dağıtımda kalıcı job kuyruğu eklenebilir.
