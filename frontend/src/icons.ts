@@ -1,0 +1,32 @@
+// Doğrudan ikon modüllerini kullan. `lucide-react` paket kökü 1.800'den fazla
+// ikon dosyasını açtığı için macOS üzerinde Vite dönüşümünü kilitleyebiliyor.
+export { default as AlertTriangle } from "lucide-react/dist/esm/icons/triangle-alert.mjs";
+export { default as ArrowRight } from "lucide-react/dist/esm/icons/arrow-right.mjs";
+export { default as ArrowUp } from "lucide-react/dist/esm/icons/arrow-up.mjs";
+export { default as BookOpen } from "lucide-react/dist/esm/icons/book-open.mjs";
+export { default as BookOpenText } from "lucide-react/dist/esm/icons/book-open-text.mjs";
+export { default as Bot } from "lucide-react/dist/esm/icons/bot.mjs";
+export { default as Check } from "lucide-react/dist/esm/icons/check.mjs";
+export { default as CheckCircle2 } from "lucide-react/dist/esm/icons/circle-check.mjs";
+export { default as ChevronDown } from "lucide-react/dist/esm/icons/chevron-down.mjs";
+export { default as ChevronRight } from "lucide-react/dist/esm/icons/chevron-right.mjs";
+export { default as CornerDownLeft } from "lucide-react/dist/esm/icons/corner-down-left.mjs";
+export { default as Cpu } from "lucide-react/dist/esm/icons/cpu.mjs";
+export { default as Database } from "lucide-react/dist/esm/icons/database.mjs";
+export { default as FileText } from "lucide-react/dist/esm/icons/file-text.mjs";
+export { default as FileUp } from "lucide-react/dist/esm/icons/file-up.mjs";
+export { default as HardDrive } from "lucide-react/dist/esm/icons/hard-drive.mjs";
+export { default as LoaderCircle } from "lucide-react/dist/esm/icons/loader-circle.mjs";
+export { default as Menu } from "lucide-react/dist/esm/icons/menu.mjs";
+export { default as Network } from "lucide-react/dist/esm/icons/network.mjs";
+export { default as Paperclip } from "lucide-react/dist/esm/icons/paperclip.mjs";
+export { default as Plus } from "lucide-react/dist/esm/icons/plus.mjs";
+export { default as RotateCcw } from "lucide-react/dist/esm/icons/rotate-ccw.mjs";
+export { default as Shapes } from "lucide-react/dist/esm/icons/shapes.mjs";
+export { default as Sparkles } from "lucide-react/dist/esm/icons/sparkles.mjs";
+export { default as TestTubeDiagonal } from "lucide-react/dist/esm/icons/test-tube-diagonal.mjs";
+export { default as Trash2 } from "lucide-react/dist/esm/icons/trash-2.mjs";
+export { default as TriangleAlert } from "lucide-react/dist/esm/icons/triangle-alert.mjs";
+export { default as UploadCloud } from "lucide-react/dist/esm/icons/cloud-upload.mjs";
+export { default as X } from "lucide-react/dist/esm/icons/x.mjs";
+export { default as XCircle } from "lucide-react/dist/esm/icons/circle-x.mjs";

@@ -7,7 +7,7 @@ import {
   LoaderCircle,
   Plus,
   X,
-} from "lucide-react";
+} from "../icons";
 import type { KnowledgeDocument } from "../types";
 
 interface KnowledgeSidebarProps {

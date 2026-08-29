@@ -5,7 +5,7 @@ import {
   UploadCloud,
   X,
   XCircle,
-} from "lucide-react";
+} from "../icons";
 import { useEffect, useRef, useState } from "react";
 import { getUploadJob, uploadPdf } from "../api";
 import type { UploadJob, UploadStatus } from "../types";

@@ -1,4 +1,4 @@
-import { Menu, RotateCcw, TriangleAlert } from "lucide-react";
+import { Menu, RotateCcw, TriangleAlert } from "./icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { askQuestion, getDocuments, getHealth } from "./api";
 import { ChatComposer } from "./components/ChatComposer";

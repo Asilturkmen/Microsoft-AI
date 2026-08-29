@@ -6,7 +6,7 @@ import {
   LoaderCircle,
   Trash2,
   X,
-} from "lucide-react";
+} from "../icons";
 import { useEffect, useRef, useState } from "react";
 import { deleteDocument, getDocument } from "../api";
 import type { DocumentDetail, KnowledgeDocument } from "../types";

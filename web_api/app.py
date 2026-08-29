@@ -59,23 +59,23 @@ def create_app(
         allow_headers=["Content-Type"],
     )
 
-    @app.get("/api/health")
+    @app.get("/api/health", response_model=None)
     def health() -> dict[str, object]:
         return rag_service.health()
 
-    @app.get("/api/documents")
+    @app.get("/api/documents", response_model=None)
     def documents() -> dict[str, object]:
         items = rag_service.list_documents()
         return {"documents": items, "total": len(items)}
 
-    @app.get("/api/documents/{filename}")
+    @app.get("/api/documents/{filename}", response_model=None)
     def document_content(filename: str) -> dict[str, object]:
         try:
             return rag_service.get_document(filename)
         except (FileNotFoundError, ValueError) as error:
             raise HTTPException(status_code=404, detail="Belge bulunamadı.") from error
 
-    @app.delete("/api/documents/{filename}")
+    @app.delete("/api/documents/{filename}", response_model=None)
     def delete_document(filename: str) -> dict[str, object]:
         try:
             result = rag_service.delete_document(filename)
@@ -87,7 +87,7 @@ def create_app(
             raise HTTPException(status_code=500, detail=f"Belge silinemedi: {error}") from error
         return {"deleted": result}
 
-    @app.post("/api/chat")
+    @app.post("/api/chat", response_model=None)
     def chat(payload: ChatRequest) -> dict[str, object]:
         try:
             result = rag_service.answer(payload.question)
@@ -114,7 +114,11 @@ def create_app(
             "used_fallback": result.used_fallback,
         }
 
-    @app.post("/api/documents", status_code=status.HTTP_202_ACCEPTED)
+    @app.post(
+        "/api/documents",
+        status_code=status.HTTP_202_ACCEPTED,
+        response_model=None,
+    )
     async def upload_document(
         background_tasks: BackgroundTasks,
         file: Annotated[UploadFile, File(description="Metin katmanlı PDF belgesi")],
@@ -170,7 +174,7 @@ def create_app(
                 staged_path.unlink(missing_ok=True)
                 rag_service.release_filename(filename)
 
-    @app.get("/api/documents/jobs/{job_id}")
+    @app.get("/api/documents/jobs/{job_id}", response_model=None)
     def upload_status(job_id: str) -> dict[str, object]:
         try:
             job = rag_service.get_upload_job(job_id)
@@ -182,7 +186,7 @@ def create_app(
     if resolved_frontend.is_dir():
         app.mount("/", StaticFiles(directory=resolved_frontend, html=True), name="frontend")
     else:
-        @app.get("/")
+        @app.get("/", response_model=None)
         def frontend_missing() -> JSONResponse:
             return JSONResponse(
                 status_code=503,

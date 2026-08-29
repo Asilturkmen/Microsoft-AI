@@ -1,4 +1,4 @@
-import { Bot, ChevronDown, FileText } from "lucide-react";
+import { Bot, ChevronDown, FileText } from "../icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../types";

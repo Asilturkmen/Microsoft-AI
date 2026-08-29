@@ -1,4 +1,4 @@
-import { ArrowUp, CornerDownLeft, Paperclip } from "lucide-react";
+import { ArrowUp, CornerDownLeft, Paperclip } from "../icons";
 import { useEffect, useRef } from "react";
 
 interface ChatComposerProps {

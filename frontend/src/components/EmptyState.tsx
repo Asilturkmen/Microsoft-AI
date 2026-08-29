@@ -1,4 +1,4 @@
-import { ArrowRight, Database, Network, Shapes, Sparkles, TestTubeDiagonal } from "lucide-react";
+import { ArrowRight, Database, Network, Shapes, Sparkles, TestTubeDiagonal } from "../icons";
 
 const prompts = [
   { icon: Database, eyebrow: "Veritabanı", text: "Primary key ile foreign key arasındaki fark nedir?" },

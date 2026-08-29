@@ -1,4 +1,4 @@
-import { Cpu, LoaderCircle, TriangleAlert } from "lucide-react";
+import { Cpu, LoaderCircle, TriangleAlert } from "../icons";
 import type { HealthStatus } from "../types";
 
 interface RuntimeBadgeProps { health: HealthStatus | null; loading: boolean; }
